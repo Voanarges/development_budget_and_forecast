@@ -14,7 +14,7 @@ Nx monorepo for live-coding sessions. Keep answers short, show commands and thei
 - Checks: `npx nx affected -t lint test typecheck --base=HEAD`; everything: `npx nx run-many -t lint test typecheck build`
 - E2E: `npx nx e2e web-e2e`
 - Prisma: `npx nx run api:prisma-migrate -- --name <change>`, `npx nx run api:prisma-generate`
-- Stop only this project's processes: `npx nx daemon --stop`, then `pkill -f "$PWD/node_modules"`; never kill processes by a generic name (other projects run on this machine).
+- Stop only this project's processes: `pkill -f "$PWD/node_modules"`, then `npx nx daemon --stop` (in this order: killing a served app respawns the daemon); never kill processes by a generic name (other projects run on this machine).
 
 ## Modes
 - Default is **fast**: no ceremony, work directly, still keep tests green.
