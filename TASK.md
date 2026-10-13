@@ -1,12 +1,12 @@
-# Тестовое задание: Development Budget / Cost Forecast
+# Take-home task: Development Budget / Cost Forecast
 
-## Контекст
+## Context
 
-Ты работаешь над финансовым продуктом для девелоперской компании.
+You are working on a financial product for a real-estate development company.
 
-У компании есть строительный проект с утвержденным бюджетом, разбитым на статьи расходов.
+The company has a construction project with an approved budget, broken down into cost lines.
 
-Например:
+For example:
 
 - Land
 - Construction
@@ -15,119 +15,119 @@
 - Architecture
 - Marketing
 
-По мере развития проекта компания заключает договоренности с подрядчиками, принимает на себя финансовые обязательства и несет фактические расходы.
+As the project progresses, the company enters into agreements with contractors, takes on financial obligations, and incurs actual costs.
 
-CFO хочет понимать:
+The CFO wants to understand:
 
-- текущее состояние бюджета проекта;
-- сколько средств уже фактически потрачено;
-- какие расходы и обязательства уже существуют;
-- какой может быть итоговая стоимость проекта;
-- по каким статьям ожидается перерасход бюджета.
+- the current state of the project budget;
+- how much money has actually been spent so far;
+- which costs and obligations already exist;
+- what the final cost of the project is likely to be;
+- which cost lines are expected to go over budget.
 
-## Задача
+## Task
 
-За **3 часа** разработай MVP, который решает эту задачу.
+Within **3 hours**, build an MVP that solves this problem.
 
-Мы намеренно не задаем точную структуру экранов, domain model, API или архитектуру приложения.
+We intentionally do not prescribe the screens, the domain model, the API, or the application architecture.
 
-Самостоятельно определи:
+Decide for yourself:
 
-- какие сущности необходимы;
-- какие данные нужно хранить;
-- какие показатели имеет смысл рассчитывать;
-- как пользователь будет взаимодействовать с системой;
-- какой функционал является минимально необходимым для MVP;
-- что имеет смысл оставить за пределами текущей итерации.
+- which entities are needed;
+- what data needs to be stored;
+- which metrics are worth calculating;
+- how the user will interact with the system;
+- what functionality is the minimum required for the MVP;
+- what should be left out of the current iteration.
 
-Главная цель - получить небольшой, но законченный и работающий продуктовый сценарий, который можно продемонстрировать пользователю.
+The main goal is a small but complete, working product scenario that can be demonstrated to a user.
 
 ## Technology stack
 
-Репозиторий содержит минимальную заготовку: Next.js (App Router, TypeScript) + Prisma + PostgreSQL. Как запустить - в `README.md`.
+The repository contains a minimal skeleton: Next.js (App Router, TypeScript) + Prisma + PostgreSQL. How to run it is described in `README.md`.
 
-Можно добавлять библиотеки и менять структуру проекта, если считаешь это оправданным.
+You may add libraries and change the project structure if you consider it justified.
 
-## AI-инструменты
+## AI tools
 
-Использование AI-инструментов разрешено и приветствуется.
+Using AI tools is allowed and encouraged.
 
-Можно использовать Claude Code, Codex, Cursor, ChatGPT или другие инструменты так, как ты используешь их в своей обычной работе.
+You may use Claude Code, Codex, Cursor, ChatGPT, or any other tools the way you use them in your normal work.
 
-Каких-либо ограничений на способ использования AI нет.
+There are no restrictions on how you use AI.
 
-## Как вести работу
+## How to run the work
 
-На время задания GitHub - твоя тикет-система: ветки, коммиты, pull requests, issues. Пиши в них все, что считаешь нужным.
+For the duration of the task, GitHub is your ticket system: branches, commits, pull requests, issues. Write in them whatever you consider necessary.
 
-Коммить все, что создаешь для работы, включая инструкции для AI-агентов.
+Commit everything you create for the work, including instructions for AI agents.
 
-Не переписывай историю: без squash и force-push.
+Do not rewrite history: no squash, no force-push.
 
-## Ограничение по времени
+## Time limit
 
-На выполнение задания дается **максимум 3 часа**.
+You have **at most 3 hours** for the task.
 
-После истечения трех часов останови работу в текущем состоянии, закоммить и запушь результат.
+When the three hours are up, stop working in whatever state the project is in, then commit and push the result.
 
-Не нужно пытаться довести проект до идеального состояния за пределами timebox.
+Do not try to bring the project to a perfect state beyond the timebox.
 
-Если часть функциональности не успела войти в MVP, это можно описать в `SOLUTION.md`.
+If part of the functionality did not make it into the MVP, you can describe it in `SOLUTION.md`.
 
-## Что должно быть в результате
+## Expected result
 
-В repository должен находиться проект, который можно локально запустить и продемонстрировать.
+The repository should contain a project that can be run locally and demonstrated.
 
-Желательно, чтобы основной пользовательский сценарий можно было пройти без ручного изменения исходного кода или данных.
+Ideally, the main user scenario can be completed without manually changing the source code or the data.
 
-Для ключевой бизнес-логики должны быть автоматические тесты.
+The key business logic should be covered by automated tests.
 
-Особое внимание стоит уделить корректной работе с денежными значениями и расчетами.
+Pay particular attention to correct handling of money values and calculations.
 
 ## SOLUTION.md
 
-Добавь короткий `SOLUTION.md`.
+Add a short `SOLUTION.md`.
 
-Опиши в нем:
+Describe in it:
 
-- что реализовано;
-- основные assumptions;
-- ключевые технические или архитектурные решения;
-- что сознательно не вошло в scope;
-- известные ограничения;
-- что ты сделал бы следующим, если бы получил еще один рабочий день.
+- what has been implemented;
+- the main assumptions;
+- the key technical or architectural decisions;
+- what was deliberately left out of scope;
+- known limitations;
+- what you would do next if you had one more working day.
 
-Документ должен быть кратким.
+Keep the document short.
 
-## Что не требуется
+## Not required
 
-За три часа не нужно реализовывать полноценную production-систему.
+You are not expected to build a full production system in three hours.
 
-В частности, не требуется:
+In particular, the following are not required:
 
-- authentication и authorization;
+- authentication and authorization;
 - multiple currencies;
-- сложная multi-tenant модель;
-- банковские интеграции;
+- a complex multi-tenant model;
+- bank integrations;
 - production deployment;
-- audit log;
-- полноценная система approval;
-- сложный design system;
+- an audit log;
+- a full approval workflow;
+- a complex design system;
 - pixel-perfect UI;
 - enterprise infrastructure.
 
-Если считаешь какую-то из этих вещей важной для выбранного решения, можешь реализовать ее, но это не является обязательным требованием.
+If you consider any of these important for your solution, you may implement it, but it is not a requirement.
 
-## После выполнения
+## After you finish
 
-После сдачи будет отдельный созвон с командой.
+After submission there will be a separate call with the team.
 
-На нем нужно будет:
+During the call you will need to:
 
-- запустить приложение;
-- показать получившийся MVP;
-- объяснить основные решения;
-- рассказать, что успел сделать за три часа;
-- рассказать, что оставил за пределами текущей версии и почему.
+- run the application;
+- show the resulting MVP;
+- explain the main decisions;
+- describe what you managed to do in three hours;
+- describe what you left out of the current version and why.
 
-Ориентируйся на формат короткого продуктового demo и технического review.
+Think of it as a short product demo followed by a technical review.
