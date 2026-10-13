@@ -9,7 +9,7 @@ The task is described in [TASK.md](TASK.md).
 
 ## Run locally
 
-Requires Node.js 24 and Docker.
+Requires Node.js 22.12+ (or 24) and Docker.
 
 ```bash
 cp .env.example .env

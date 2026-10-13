@@ -42,6 +42,8 @@ Decide for yourself:
 
 The main goal is a small but complete, working product scenario that can be demonstrated to a user.
 
+Questions are not answered while you work on the task. If something is unclear, make your own assumption and record it.
+
 ## Technology stack
 
 The repository contains a minimal skeleton: Next.js (App Router, TypeScript) + Prisma + PostgreSQL. How to run it is described in `README.md`.
@@ -56,23 +58,27 @@ You may use Claude Code, Codex, Cursor, ChatGPT, or any other tools the way you 
 
 There are no restrictions on how you use AI.
 
+## How to start
+
+Fork this repository and work in your fork.
+
 ## How to run the work
 
-For the duration of the task, GitHub is your ticket system: branches, commits, pull requests, issues. Write in them whatever you consider necessary.
-
-Commit everything you create for the work, including instructions for AI agents.
-
-Do not rewrite history: no squash, no force-push.
+Organise your work in Git the way you normally would in a small independent project. The work history is part of the result, so do not rewrite it with squash or force-push. If you create project-local instructions, plans, or configuration for AI agents, keep them in the repository as well.
 
 ## Time limit
 
-You have **at most 3 hours** for the task.
+You have **at most 3 hours of continuous work**. The clock starts when you create the fork. Time spent on running the project locally, getting familiar with the repository, and design counts toward these 3 hours.
 
-When the three hours are up, stop working in whatever state the project is in, then commit and push the result.
+When the three hours are up, stop working in whatever state the project is in, then commit and push the result to your fork.
 
 Do not try to bring the project to a perfect state beyond the timebox.
 
 If part of the functionality did not make it into the MVP, you can describe it in `SOLUTION.md`.
+
+## How to submit
+
+Open a pull request from your fork to this repository. An open pull request means the work has been submitted.
 
 ## Expected result
 
