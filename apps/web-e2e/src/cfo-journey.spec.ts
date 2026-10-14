@@ -56,14 +56,15 @@ test('should answer the CFO questions live across tabs and keep edits after a re
 
   const forecastBefore = await kpi(page, 'Forecast (EAC)').textContent();
 
-  await test.step('3. Editing the NYM-J cable quantity recalculates the row, section and KPIs, and survives a reload', async () => {
-    const cable = page.getByRole('table', { name: 'Electrical' }).locator('tr', { hasText: 'MAT-ELE-001' });
+  await test.step('3. Editing a not-yet-bought electrical row (LED downlights) recalculates the row, section and KPIs, and survives a reload', async () => {
+    // PLANNED row: forecast = planned. The NYM-J cable rows are DONE (forecast = actual), owner's decision 2026-10-14
+    const cable = page.getByRole('table', { name: 'Electrical' }).locator('tr', { hasText: 'MAT-ELE-008' });
     const sectionTotal = page.getByTestId('section-planned');
     const totalBefore = await sectionTotal.textContent();
 
-    await cable.getByRole('button', { name: 'Edit quantity MAT-ELE-001' }).click();
-    const input = cable.getByRole('textbox', { name: 'quantity MAT-ELE-001' });
-    await input.fill('900');
+    await cable.getByRole('button', { name: 'Edit quantity MAT-ELE-008' }).click();
+    const input = cable.getByRole('textbox', { name: 'quantity MAT-ELE-008' });
+    await input.fill('20');
     const saved = itemPatchSaved(page);
     await input.press('Enter');
 
@@ -76,9 +77,9 @@ test('should answer the CFO questions live across tabs and keep edits after a re
     await expect(
       page
         .getByRole('table', { name: 'Electrical' })
-        .locator('tr', { hasText: 'MAT-ELE-001' })
-        .getByRole('button', { name: 'Edit quantity MAT-ELE-001' }),
-    ).toHaveText('900 m');
+        .locator('tr', { hasText: 'MAT-ELE-008' })
+        .getByRole('button', { name: 'Edit quantity MAT-ELE-008' }),
+    ).toHaveText('20 pcs');
     await expect(kpi(page, 'Forecast (EAC)')).not.toHaveText(forecastBefore ?? '');
   });
 
