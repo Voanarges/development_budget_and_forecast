@@ -57,15 +57,15 @@ test('should answer the CFO questions live across tabs and keep edits after a re
 
   const forecastBefore = await kpi(page, 'Forecast (EAC)').textContent();
 
-  await test.step('3. Editing a not-yet-bought electrical row (LED downlights) recalculates the row, section and KPIs, and survives a reload', async () => {
-    // PLANNED row: forecast = planned. The NYM-J cable rows are DONE (forecast = actual), owner's decision 2026-10-14
-    const cable = page.getByRole('table', { name: 'Electrical' }).locator('tr', { hasText: 'MAT-ELE-008' });
+  await test.step('3. Editing the NYM-J cable quantity recalculates the row, section and KPIs, and survives a reload', async () => {
+    // MAT-ELE-001 is PARTIAL in the seed (owner 12:06): 900 m makes planned < committed, so EAC drops to committed
+    const cable = page.getByRole('table', { name: 'Electrical' }).locator('tr', { hasText: 'MAT-ELE-001' });
     const sectionTotal = page.getByTestId('section-planned');
     const totalBefore = await sectionTotal.textContent();
 
-    await cable.getByRole('button', { name: 'Edit quantity MAT-ELE-008' }).click();
-    const input = cable.getByRole('textbox', { name: 'quantity MAT-ELE-008' });
-    await input.fill('20');
+    await cable.getByRole('button', { name: 'Edit quantity MAT-ELE-001' }).click();
+    const input = cable.getByRole('textbox', { name: 'quantity MAT-ELE-001' });
+    await input.fill('900');
     const saved = itemPatchSaved(page);
     await input.press('Enter');
 
@@ -78,9 +78,9 @@ test('should answer the CFO questions live across tabs and keep edits after a re
     await expect(
       page
         .getByRole('table', { name: 'Electrical' })
-        .locator('tr', { hasText: 'MAT-ELE-008' })
-        .getByRole('button', { name: 'Edit quantity MAT-ELE-008' }),
-    ).toHaveText('20 pcs');
+        .locator('tr', { hasText: 'MAT-ELE-001' })
+        .getByRole('button', { name: 'Edit quantity MAT-ELE-001' }),
+    ).toHaveText('900 m');
     await expect(kpi(page, 'Forecast (EAC)')).not.toHaveText(forecastBefore ?? '');
   });
 
@@ -141,7 +141,7 @@ test('should answer the CFO questions live across tabs and keep edits after a re
     await expect.poll(async () => eurToCents(await price.innerText())).toBeLessThan(priceBefore);
     await expect.poll(async () => eurToCents(await profit.innerText())).toBeLessThan(profitBefore);
     await saved;
-    const priceAfter = (await price.textContent()) ?? ''; // textContent: what toHaveText compares (innerText is CSS-uppercased)
+    const priceAfter = String(await price.textContent()); // textContent: what toHaveText compares (innerText is CSS-uppercased)
 
     await page.reload();
     await expect(page.getByLabel('Company markup %')).toHaveValue('12.0');

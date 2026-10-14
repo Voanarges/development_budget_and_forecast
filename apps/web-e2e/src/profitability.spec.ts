@@ -46,7 +46,7 @@ test('should recalculate contract price, profit and margin when the markup goes 
   await expect(profit).not.toHaveText(profitBefore);
   await expect(margin).not.toHaveText(marginBefore);
   await saved;
-  const priceAfter = (await price.textContent()) ?? ''; // textContent: what toHaveText compares (innerText is CSS-uppercased)
+  const priceAfter = String(await price.textContent()); // textContent: what toHaveText compares (innerText is CSS-uppercased)
 
   await page.reload();
   await expect(page.getByLabel('Company markup %')).toHaveValue('12.0');
@@ -64,7 +64,7 @@ test('should change the Profitability forecast after a quantity edit on Building
   await page.goto(`/projects/${projectId}/materials/electrical`);
   const cable = page
     .getByRole('table', { name: 'Electrical' })
-    .locator('tr', { hasText: 'MAT-ELE-008' }); // PLANNED: forecast = planned (NYM-J rows are DONE)
+    .locator('tr', { hasText: 'MAT-ELE-008' }); // PLANNED: forecast = planned
   await cable
     .getByRole('button', { name: 'Edit quantity MAT-ELE-008' })
     .click();
@@ -72,9 +72,7 @@ test('should change the Profitability forecast after a quantity edit on Building
     (r) =>
       r.request().method() === 'PATCH' && r.url().includes('/items/') && r.ok(),
   );
-  await cable
-    .getByRole('textbox', { name: 'quantity MAT-ELE-008' })
-    .fill('20');
+  await cable.getByRole('textbox', { name: 'quantity MAT-ELE-008' }).fill('20');
   await page.keyboard.press('Enter');
   await saved;
 

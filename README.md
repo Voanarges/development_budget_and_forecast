@@ -1,15 +1,22 @@
-# default-project
+# Development Budget & Cost Forecast (Kairon)
 
-Nx monorepo for live-coding sessions with Claude Code: NestJS + Prisma (SQLite) API, React + Vite web app, Playwright e2e and a shared types library. The `.claude/` kit adds a set of commands for the whole cycle — from a raw task to a shipped branch.
+A CFO tool for a German house builder: budget, actual spend, commitments, forecast (EAC) and overruns per project and across the portfolio, recalculated live. Nx monorepo: NestJS + Prisma (SQLite) API, React + Vite + Tailwind web app, a shared money engine, Playwright e2e. What was built and why: [SOLUTION.md](SOLUTION.md).
 
 ## Quick start
 
 ```sh
 npm ci
-npx nx run api:prisma-migrate -- --name init   # first run only
-npx nx serve api                                # http://localhost:3454/api
-npx nx serve web                                # http://localhost:4274
-npx nx affected -t lint test typecheck --base=HEAD
+cd apps/api && npx prisma migrate deploy && npx prisma db seed && cd ../..   # schema + demo data (idempotent)
+npm start                                       # api http://localhost:3454/api · web http://localhost:4274
+```
+
+Open http://localhost:4274 → **Current projects** → "Stadtvilla Taucha — Family of 4" (the demo scenario is in `howItWorks/SUMMARY.md` §3).
+
+Checks:
+
+```sh
+npx nx run-many -t lint test typecheck build
+bash howItWorks/bin/e2e.sh                      # Playwright (api 3454 + web preview 4300), main tree only
 ```
 
 Stack, versions and coding rules: `.claude/CLAUDE.md`.

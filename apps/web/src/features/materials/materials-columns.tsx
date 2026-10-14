@@ -56,6 +56,7 @@ export const MATERIAL_COLUMNS: readonly Column<CostItem>[] = [
     id: 'supplier',
     header: 'Supplier',
     cell: (r, edit) => (
+      // eslint-disable-next-line jsx-a11y/aria-role -- OrgCell's `role` is an OrgRole picker filter, not an ARIA role
       <OrgCell orgId={r.supplierId} role="SUPPLIER" label={`supplier ${r.code}`} onCommit={(supplierId) => edit({ supplierId })} />
     ),
   },
@@ -63,6 +64,7 @@ export const MATERIAL_COLUMNS: readonly Column<CostItem>[] = [
     id: 'installer',
     header: 'Installer',
     cell: (r, edit) => (
+      // eslint-disable-next-line jsx-a11y/aria-role -- OrgCell's `role` is an OrgRole picker filter, not an ARIA role
       <OrgCell orgId={r.contractorId} role="CONTRACTOR" label={`installer ${r.code}`} onCommit={(contractorId) => edit({ contractorId })} />
     ),
   },
