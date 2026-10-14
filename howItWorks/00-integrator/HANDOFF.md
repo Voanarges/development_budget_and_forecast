@@ -19,3 +19,5 @@
 - 11:47: CR-12 applied (docs only, CONTRACTS §5/§6). Item 2 (query-keys.ts) resolved as a block-private key, no code change.
 - 11:50: CR-05 (engine `addDays`) accepted, batched with CR-11. Row 00 now also owns `budget-engine/src/lib/schedule.ts` + spec.
 - 11:47: 01 merged (fdac8d8). CONTRACTS updated with 01's as-built points (ids, DELETE line → 409, optional approvedByCategory, module order, seed runner).
+- 11:47: CR-11 + CR-05 applied (main 1e0fe11, CONTRACT_VERSION 2); 03 merged (c067c47).
+- 11:48: main DB migrated + seeded twice: Project=4 BudgetLine=172 CostItem=745 Organization=14 Delivery=7 … identical counts (AC-03.5 ✓).

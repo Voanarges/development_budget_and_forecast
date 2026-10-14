@@ -36,6 +36,7 @@ Never run `serve` or `e2e` in a worktree (PROTOCOL §6–7).
    - `bash howItWorks/bin/ac-ledger.sh --self-test`
    - `bash howItWorks/bin/tests/check-weakening.test.sh`
    - `bash howItWorks/bin/tests/e2e.test.sh`
+   - `bash howItWorks/bin/tests/app.test.sh`
 
 Report a short table of step, command and exit code. If any step fails, say "not done" and fix the cause, never
 the assertion (`/fix-test`).

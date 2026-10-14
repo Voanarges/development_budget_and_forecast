@@ -4,7 +4,7 @@
 #        integrator-watch.sh --once   one pass: exit 0 with events, 3 without
 #        integrator-watch.sh --ack    accept the last printed events (they are repeated until acked)
 # Events: MERGED NN <sha> · FLAG w0-frozen|main.broken · STATUS NN conflict|check-failed|main-dirty <note>
-#         CR <file> (new or changed, ≥ KAIRON_CR_MIN_AGE s old) · DIRTY <paths> (main outside howItWorks/)
+#         CR <file> (new or changed, ≥ KAIRON_CR_MIN_AGE s old) · DIRTY <paths> (main outside howItWorks/ became dirty)
 # Interval: KAIRON_WATCH_INTERVAL (20 s). State: $STATE/integrator.* (git-ignored). Bash 3.2.
 . "$(dirname "$0")/lib.sh"
 INTERVAL="${KAIRON_WATCH_INTERVAL:-20}"
@@ -66,9 +66,10 @@ one_pass() {
     grep -qxF "$(printf '%s\t%s' "$name" "$m")" "$P.cr" 2>/dev/null || { out="$out${out:+$'\n'}CR $name"; reps="$reps${reps:+$'\n'}rep $name"; }
   done
 
-  # main tree dirt outside howItWorks/, reported when its fingerprint changes
+  # main tree dirt outside howItWorks/: reported once per dirty episode (clean -> dirty). Growing dirt in the
+  # same episode is quiet; a merge it actually blocks arrives as STATUS NN main-dirty
   dirt=$(git -C "$MAIN" status --porcelain -- . ':(exclude)howItWorks' 2>/dev/null)
-  fp=""; [ -n "$dirt" ] && fp=$(printf '%s' "$dirt" | cksum | tr ' ' '-')
+  fp=""; [ -n "$dirt" ] && fp=dirty
   [ -z "$fp" ] && : > "$P.dirty"   # clean again: the next dirt is news
   if [ -n "$fp" ] && [ "$fp" != "$(cat "$P.dirty" 2>/dev/null)" ]; then
     out="$out${out:+$'\n'}DIRTY $(printf '%s' "$dirt" | awk '{print $NF}' | tr '\n' ' ')"

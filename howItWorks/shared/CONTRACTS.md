@@ -1,7 +1,7 @@
 # CONTRACTS — single source of truth (frozen at the `w0-frozen` tag)
 
 Block 01 transcribes §1–§6 into code (schema, zod, engine, API). Block 02 implements §6–§7 on the web side.
-Any divergence is a CR (PROTOCOL §4). `CONTRACT_VERSION = 1` (a constant in `libs/shared/types/src/lib/version.ts`).
+Any divergence is a CR (PROTOCOL §4). `CONTRACT_VERSION = 2` (a constant in `libs/shared/types/src/lib/version.ts`).
 
 ---
 
@@ -329,7 +329,7 @@ Response = zod type from `@default-project/types`. Errors are Nest HTTP exceptio
 | `PATCH /projects/:id/land`, `PATCH /projects/:id/land/utilities/:type` | → `LandParcel` / `UtilityConnection` (upsert by type) | 07 |
 | `PATCH /projects/:id/plan`; `POST|PATCH|DELETE /projects/:id/plan/rooms[/:roomId]`; `POST|PATCH|DELETE /projects/:id/plan/components[/:componentId]` | changing a component's `qtyMilli` **in the same transaction** updates `qtyMilli` of every linked CostItem (`boqComponentId`) | 08 |
 | `GET /projects/:id/deliveries`; `POST /projects/:id/deliveries/import` `{fileName, rows: DeliveryImportRow[]}` → `ImportResult` | 10 |
-| `GET /analytics/portfolio` → `PortfolioAnalytics` = `{ totals: Summary; profitability: Profitability /* over the sum */; projects: Array<{projectId; slug; name; city; status; summary: Summary; profitability: Profitability; byCategory: Record<CostCategory, Summary>}>; byCategory: Record<CostCategory, Summary>; cashflow: Array<{month; planned; actual; forecast; cumulativePlanned; cumulativeActual; cumulativeForecast}> }` | 11 |
+| `GET /analytics/portfolio?today=YYYY-MM-DD` (optional; fallback env `DEMO_TODAY`, then `2026-10-14`, CR-11) → `PortfolioAnalytics` = `{ totals: Summary; profitability: Profitability /* sum of per-project fields; marginBps = toBps(Σ forecastProfit, Σ contractPrice), CR-11 */; projects: Array<{projectId; slug; name; city; status; summary: Summary; profitability: Profitability; byCategory: Record<CostCategory, Summary>; /* CR-11, optional: */ startDate?; endDate?; overrunLineCount?; cashflow?: CashflowMonth[]; delivery?: {deliveredRows; onTimeRows; overdueItems}}>; byCategory: Record<CostCategory, Summary>; cashflow: Array<{month; planned; actual; forecast; cumulativePlanned; cumulativeActual; cumulativeForecast}> }` | 11 |
 | `POST /projects/wizard` `WizardInput` → `ProjectSnapshot` (clones the template, scales quantities by area: only continuous units `m3 m2 m t kg h` of MATERIALS/CONSTRUCTION rows and BOQ, counted units stay (CR-12), applies the step overrides) | 12 |
 | `GET /projects/wizard/template` → `ProjectSnapshot` of `template-efh-144` (404 when the seed has not run). Two segments after `/projects`, so no clash with `GET /projects/:id` (CR-12) | 12 |
 

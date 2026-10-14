@@ -1,6 +1,6 @@
 # CR-11-portfolio-extension
 - Author: block 11 · Date: 2026-10-14
-- Status: accepted (integrator 11:45) — applied in the first block-00 batch after w0-frozen; 01 is not interrupted (critical path)
+- Status: applied in main 1e0fe11 (merge: 00-integrator), CONTRACT_VERSION 2
 - Affected: types (`libs/shared/types/src/lib/analytics.ts`), CONTRACTS §5 (analytics row), `apps/api/.env.example`
 - Blocks affected: 11 only (additive, all fields optional)
 
