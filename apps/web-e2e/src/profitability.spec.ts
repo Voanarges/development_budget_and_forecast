@@ -46,7 +46,7 @@ test('should recalculate contract price, profit and margin when the markup goes 
   await expect(profit).not.toHaveText(profitBefore);
   await expect(margin).not.toHaveText(marginBefore);
   await saved;
-  const priceAfter = (await price.textContent()) ?? ''; // textContent: what toHaveText compares (innerText is CSS-uppercased)
+  const priceAfter = String(await price.textContent()); // textContent: what toHaveText compares (innerText is CSS-uppercased)
 
   await page.reload();
   await expect(page.getByLabel('Company markup %')).toHaveValue('12.0');

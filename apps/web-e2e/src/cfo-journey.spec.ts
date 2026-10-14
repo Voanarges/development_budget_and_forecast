@@ -141,7 +141,7 @@ test('should answer the CFO questions live across tabs and keep edits after a re
     await expect.poll(async () => eurToCents(await price.innerText())).toBeLessThan(priceBefore);
     await expect.poll(async () => eurToCents(await profit.innerText())).toBeLessThan(profitBefore);
     await saved;
-    const priceAfter = (await price.textContent()) ?? ''; // textContent: what toHaveText compares (innerText is CSS-uppercased)
+    const priceAfter = String(await price.textContent()); // textContent: what toHaveText compares (innerText is CSS-uppercased)
 
     await page.reload();
     await expect(page.getByLabel('Company markup %')).toHaveValue('12.0');
