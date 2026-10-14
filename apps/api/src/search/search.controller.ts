@@ -1,5 +1,14 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
+import type { SearchResult } from '@default-project/types';
+import { SearchQueryDto } from './dto/search-query.dto';
+import { SearchService } from './search.service';
 
-/** Stub from block 01 (route prefix frozen in CONTRACTS §5); the owning block adds the handlers. */
 @Controller('search')
-export class SearchController {}
+export class SearchController {
+  constructor(private readonly searchService: SearchService) {}
+
+  @Get()
+  search(@Query() query: SearchQueryDto): Promise<SearchResult[]> {
+    return this.searchService.search(query.q);
+  }
+}
