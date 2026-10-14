@@ -18,3 +18,4 @@
 - 11:45: CR-11 (portfolio extension) accepted; queued for the first block-00 batch after `w0-frozen`. Row 00 now also owns `apps/api/.env.example` (no other owner).
 - 11:47: CR-12 applied (docs only, CONTRACTS §5/§6). Item 2 (query-keys.ts) resolved as a block-private key, no code change.
 - 11:50: CR-05 (engine `addDays`) accepted, batched with CR-11. Row 00 now also owns `budget-engine/src/lib/schedule.ts` + spec.
+- 11:47: 01 merged (fdac8d8). CONTRACTS updated with 01's as-built points (ids, DELETE line → 409, optional approvedByCategory, module order, seed runner).
