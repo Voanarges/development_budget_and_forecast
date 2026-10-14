@@ -137,7 +137,7 @@ function materialRows(): CostItemSeed[] {
       { code: 'MAT-INF-009', name: 'Mineral wool fire barriers', unit: 'm', qty: '45', price: '12.90', money: 'PLANNED', delivery: '2026-10-22', work: 'WRK-FAC-001' },
     ]),
     ...buildRows({ category: 'MATERIALS', section: 'electrical', kind: 'MATERIAL', supplier: MERCHANT, contractor: ELECTRICIAN }, [
-      { code: 'MAT-ELE-001', name: 'Cable NYM-J 3×1.5 mm²', description: '2026 price +7.2 % on the budget (0.70 → 0.76 €/m)', unit: 'm', qty: '1300', price: '0.76', money: 'DONE', delivery: '2026-10-08', delivered: true, work: 'WRK-ELE-001', boq: 'BOQ-ELE-001' },
+      { code: 'MAT-ELE-001', name: 'Cable NYM-J 3×1.5 mm²', description: '2026 price +7.2 % on the budget (0.70 → 0.76 €/m); 1,000 m delivered and paid, 300 m for the first fix not ordered yet', unit: 'm', qty: '1300', price: '0.76', money: { status: 'PARTIAL', committed: '760.00', actual: '760.00' }, delivery: '2026-10-08', delivered: true, work: 'WRK-ELE-001', boq: 'BOQ-ELE-001' },
       { code: 'MAT-ELE-002', name: 'Cable NYM-J 5×2.5 mm² (cooker, heat pump)', unit: 'm', qty: '180', price: '2.35', money: 'DONE', delivery: '2026-10-08', delivered: true, work: 'WRK-ELE-001' },
       { code: 'MAT-ELE-003', name: 'Meter cabinet with pre-wired distribution board', unit: 'set', qty: '1', price: '2850.00', money: 'DONE', delivery: '2026-10-09', delivered: true, work: 'WRK-ELE-002', boq: 'BOQ-ELE-002' },
       { code: 'MAT-ELE-004', name: 'Flush boxes, conduit and fixings', unit: 'set', qty: '1', price: '640.00', money: 'DONE', delivery: '2026-10-08', delivered: true, work: 'WRK-ELE-001' },

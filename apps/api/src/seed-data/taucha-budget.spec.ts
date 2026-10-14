@@ -1,4 +1,4 @@
-import { computeProfitability, summarizeProject } from '@default-project/budget-engine';
+import { computeProfitability, itemForecastCents, summarizeProject } from '@default-project/budget-engine';
 import { BUDGET_CATALOG } from '@default-project/types';
 import { buildOrganizations } from './organizations';
 import { buildTauchaSeed } from './taucha';
@@ -59,5 +59,19 @@ describe('Taucha seed: budget', () => {
   it('should keep electrical installation within budget when electrical materials overrun [AC-03.2]', () => {
     expect(line('electrical-install').overrun).toBe(false);
     expect(line('electrical').overrun).toBe(true);
+  });
+
+  it('should keep the demo cable PARTIAL so a quantity edit moves the forecast [AC-03.7]', () => {
+    const cable = snapshot.items.find((i) => i.code === 'MAT-ELE-001');
+    if (!cable) throw new Error('no MAT-ELE-001');
+    expect([cable.status, cable.committedCents, cable.actualCents]).toEqual(['PARTIAL', 76_000, 76_000]);
+    expect(itemForecastCents(cable)).toBe(98_800);
+    // SUMMARY §3 step 3: the CFO lowers the quantity to 900 m → EAC falls (1,000 m already paid stays the floor)
+    expect(itemForecastCents({ ...cable, qtyMilli: 900_000 })).toBe(76_000);
+  });
+
+  it('should leave the demo forecast unchanged when the cable is PARTIAL [AC-03.7]', () => {
+    expect(summary.project.forecast).toBe(54_045_565);
+    expect(line('electrical').forecast - line('electrical').approved).toBe(100_400);
   });
 });
