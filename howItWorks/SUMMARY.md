@@ -49,7 +49,7 @@ All UI text is **English**. Light theme in soft colours, smooth transitions, **T
 
 1. Open the app → **Current projects** → "Stadtvilla Taucha — Family of 4" (seeded, Taucha near Leipzig).
 2. The header KPI strip shows Budget / Spent / Open commitments / Forecast (EAC) / Variance, plus "N lines over budget".
-3. **Building materials → Electrical**: edit the quantity of a not-yet-bought row (LED downlights, PLANNED). The amount, the section total, the KPI strip and **Profitability** update instantly. After a reload the value is still there. (The NYM-J cable rows are already installed: DONE, so their forecast is the actual and a quantity edit changes only the planned amount. Owner decision 2026-10-14.)
+3. **Building materials → Electrical**: edit the quantity of NYM-J cable. The amount, the section total, the KPI strip and **Profitability** update instantly. After a reload the value is still there. (Seed: the cable is PARTIAL, 1,000 of 1,300 m bought, so a quantity change moves the forecast. Owner decision 2026-10-14 12:06. The 04/06 e2e use the PLANNED LED downlights row MAT-ELE-008, which is just as valid.)
 4. **Construction → Windows & doors**: the alert "Windows arrive 9 days after installation start". Move the delivery date earlier and the alert disappears.
 5. Click a supplier → modal with contacts, the responsible person and this organisation's deadlines.
 6. **Profitability**: change the markup from 15% to 12% → contract price, profit and margin are recalculated, and the charts redraw.

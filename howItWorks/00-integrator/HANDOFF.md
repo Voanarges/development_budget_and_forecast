@@ -21,3 +21,22 @@
 - 11:47: 01 merged (fdac8d8). CONTRACTS updated with 01's as-built points (ids, DELETE line → 409, optional approvedByCategory, module order, seed runner).
 - 11:47: CR-11 + CR-05 applied (main 1e0fe11, CONTRACT_VERSION 2); 03 merged (c067c47).
 - 11:48: main DB migrated + seeded twice: Project=4 BudgetLine=172 CostItem=745 Organization=14 Delivery=7 … identical counts (AC-03.5 ✓).
+- 11:52: 07 merged (5879e73). 13's search limitation (ASCII-only SQL contains → JS fold) is in the SOLUTION draft.
+- 11:52: 13 merged (148400d).
+
+## Finish TODO (collected from block notes)
+- docs/architecture (blocks cannot write `docs/**`):
+  - 07 → move `howItWorks/07-land/land.md`;
+  - 05 → `construction-tab.md` from its DESIGN "As built" section;
+  - 13 → `search.md` from DESIGN/HANDOFF;
+  - the others as they arrive;
+  - plus `integration-flow.md` and the index rows.
+- After `08.merged`: the Land tab switches `apps/web/src/features/land/plot-diagram.tsx` to `<SitePlan projectId/>` (07 HANDOFF). That is a file of the merged block 07, so the integrator does it (adding the path to row 00) or block 08 does it with a CR.
+- e2e to run in main: AC-04.8, AC-05.7 (construction), AC-07.11 (`--grep AC-07`), AC-13.12 (search), plus cfo-journey AC-00.2.
+- 12:10: **core e2e green** (`e2e.sh --grep "AC-00.2|AC-04.8|AC-05.7|AC-06.7"` → 6 passed, E2E: PASS; record docs/test-runs/2026-10-14-120943-e2e.md). On the way:
+  - owner's decision: the demo quantity edit uses a PLANNED row (MAT-ELE-008), because the NYM-J cable rows are DONE (forecast = actual);
+  - tabs are `role="tab"`, not links;
+  - textContent vs innerText;
+  - whole-euro amounts;
+  - a hanging `blur()`.
+  The integrator now owns materials/profitability/construction e2e specs (row 00, `state/00.spec-rewrite`).
