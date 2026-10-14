@@ -1,2 +1,2 @@
 /** Bumped by the integrator whenever an applied CR changes a frozen contract. */
-export const CONTRACT_VERSION = 1;
+export const CONTRACT_VERSION = 2;
