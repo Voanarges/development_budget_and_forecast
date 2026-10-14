@@ -1,5 +1,13 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
+import { AnalyticsService, type PortfolioResponse } from './analytics.service';
+import { PortfolioQueryDto } from './dto/portfolio-query.dto';
 
-/** Stub from block 01 (route prefix frozen in CONTRACTS §5); the owning block adds the handlers. */
 @Controller('analytics')
-export class AnalyticsController {}
+export class AnalyticsController {
+  constructor(private readonly analytics: AnalyticsService) {}
+
+  @Get('portfolio')
+  portfolio(@Query() query: PortfolioQueryDto): Promise<PortfolioResponse> {
+    return this.analytics.portfolio(query.today);
+  }
+}
