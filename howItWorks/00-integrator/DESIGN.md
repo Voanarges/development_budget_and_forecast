@@ -73,7 +73,7 @@ Interval: `KAIRON_WATCH_INTERVAL` (20 s). Events, one per line:
 | `FLAG w0-frozen` / `FLAG main.broken` | events.log |
 | `STATUS NN <conflict\|check-failed\|main-dirty> <note>` | events.log (NN ≠ 00) |
 | `CR <file>` | new or changed `shared/change-requests/CR-*.md`, ≥ 10 s old (name+mtime) |
-| `DIRTY <paths>` | `git status --porcelain` of main outside `howItWorks/`, fingerprint ≠ acked |
+| `DIRTY <paths>` | main outside `howItWorks/` went from clean to dirty (once per dirty episode; a merge it blocks arrives as `STATUS NN main-dirty`) |
 
 The state (`state/` is git-ignored) lives in `integrator.offset`, `integrator.cr`, `integrator.dirty` and `integrator.pending`.
 
@@ -107,7 +107,7 @@ The state (`state/` is git-ignored) lives in `integrator.offset`, `integrator.cr
 - AC-00.7 (check) `FLAG 04.merged` in events.log → `MERGED 04 …`. `FLAG 00.merged` and `STATUS 00 …` → no event.
 - AC-00.8 (check) `STATUS 05 conflict|check-failed|main-dirty` → an event. `in-progress`/`waiting-merge` → none.
 - AC-00.9 (check) `FLAG main.broken`, `FLAG w0-frozen` → an event.
-- AC-00.10 (check) A file outside `howItWorks/` → `DIRTY`; a file inside `howItWorks/` → none; after `--ack` with the same dirt → none; new dirt → `DIRTY` again.
+- AC-00.10 (check) A file outside `howItWorks/` → `DIRTY`; a file inside `howItWorks/` → none; after `--ack`, more dirt in the same episode → none; clean, then dirt again → `DIRTY`. (Changed 11:50: per-file re-alerts were noise while the kit session kept writing.)
 - AC-00.11 (check) Without `--ack` the event repeats (it survives a killed run); after `--ack` it doesn't.
 - AC-00.12 (check) Blocking mode exits once an event appears; `--bogus` → exit 2; bash 3.2 (`/bin/bash`).
 - AC-00.13 (check) `merge-block.sh` on a dirty main → the status file says `main-dirty`.

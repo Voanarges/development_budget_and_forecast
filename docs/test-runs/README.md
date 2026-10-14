@@ -5,6 +5,7 @@ Kept in git on purpose: the history of runs is part of the result (TASK.md).
 | File | Written by | What it is |
 |---|---|---|
 | `<YYYY-MM-DD-HHMMSS>-e2e.md` | `howItWorks/bin/e2e.sh` (every run, committed at once) | One run: verdict, main commit, scope (full or `--grep`), exit codes, ledger rows that are not OK/MANUAL, e2e tests that did not pass |
+| `<YYYY-MM-DD-HHMMSS>-explore.md` | `/explore-app` (committed at once) | Browser walkthrough through the Playwright MCP: journey table, console/network findings, exploratory defects and hypotheses |
 | `ledger-baseline.txt` | `e2e.sh` after a **green full** run (`ac-ledger.sh --write-baseline`) | Every `AC-NN.M` proven OK at least once. `ac-ledger.sh` reads it on every run and fails with `REGRESSED` if one of them is no longer OK, in any block, merged or not |
 
 Rules:

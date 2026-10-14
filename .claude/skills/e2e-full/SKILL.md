@@ -33,8 +33,9 @@ Refuse to run in a worktree. Check that `git rev-parse --show-toplevel` is `/Use
    - UNCOVERED → `test-automator` writes the tagged test with red-proof.
    - Or the owner explicitly drops the AC from BLOCK.md.
    - ORPHAN → fix the tag, or add the registry line.
-7. **Exploratory (optional, once before shipping).** If everything is green, spawn one `exploratory-qa-tester`. It
-   uses `e2e.sh --exec`, so it waits for the same lock.
+7. **Browser walkthrough (once before shipping).** If everything is green, run `/explore-app`. It starts the app
+   (`app.sh`), drives the demo journey through the Playwright MCP `playwright-kairon`, spawns one `exploratory-qa-tester`
+   and commits a record to `docs/test-runs/`.
 8. **Report.**
    - A table `target | PASS/FAIL/SKIP | reason`.
    - The ledger `SUMMARY`, with the rows that are not OK or MANUAL, and the path of the run record in `docs/test-runs/`.

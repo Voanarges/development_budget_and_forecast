@@ -52,6 +52,7 @@ Type them in Claude Code as `/name`. **Who** — whether Claude may start the co
 | `/self-review` | One-pass review of the diff against the stack checklist | quick check after tests are green | you or Claude | findings with file:line |
 | `/review-full` | Adversarial review: prosecutor and defender in parallel, a judge rules on each finding; APPROVE / REQUEST CHANGES / NEEDS DISCUSSION | before `/mr`, or a thorough review | you or Claude | verdict + blocking list |
 | `/e2e-full` | Full regression, main tree only: every lint / test / typecheck / build target, then e2e under the machine-wide lock (`howItWorks/bin/e2e.sh`) and the AC ledger against the JSON report — merged blocks must have no UNCOVERED / SKIPPED / FAILED ACs | after merges, before `/mr`, or "did anything old break?" | you or Claude | report + ledger SUMMARY |
+| `/explore-app` | Browser walkthrough of the finished app through the Playwright MCP `playwright-kairon`: starts it (`howItWorks/bin/app.sh`), drives the demo journey on a duplicated project at 3 viewports, checks console and network, runs one exploratory tester, commits a record | blocks merged, `/e2e-full` green | you or Claude | `docs/test-runs/<stamp>-explore.md` |
 | `/mr` | Scoped commits by file name → merge of main → checks → `/review-full` → completeness check → push (asks you) → PR with what / why / how to verify | work is finished | **you only** | commits, PR |
 | `/checkout <name>` | New branch from the freshest main, carrying unpushed commits and all uncommitted changes; the source branch is untouched | starting a new branch | **you only** | new branch |
 | `/report-tasks [date]` | The day's work across all sessions as "did X so that Y", git as the spine | end of day | **you only** | text in chat |
@@ -70,7 +71,7 @@ Claude Code's built-in `/plan` gives a visible planning phase. `core-debug`, `co
 ```
 /create-task → /brainstorm → code + unit tests → /test-task → /update-doc → /done-check
                                                              ↓
-                                   /e2e-full → /review-full → /mr
+                                   /e2e-full → /explore-app → /review-full → /mr
 ```
 
 A red test at any point → `/fix-test`. Testing agents in `.claude/agents/` (spawned by the skills, not called directly): `test-automator` (tagged guard test + red-proof), `regression-scout` (diff → ACs to re-run), `exploratory-qa-tester` (main tree, once before shipping).
