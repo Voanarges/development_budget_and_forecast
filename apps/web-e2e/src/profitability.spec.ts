@@ -64,7 +64,7 @@ test('should change the Profitability forecast after a quantity edit on Building
   await page.goto(`/projects/${projectId}/materials/electrical`);
   const cable = page
     .getByRole('table', { name: 'Electrical' })
-    .locator('tr', { hasText: 'MAT-ELE-008' }); // PLANNED: forecast = planned (NYM-J rows are DONE)
+    .locator('tr', { hasText: 'MAT-ELE-008' }); // PLANNED: forecast = planned
   await cable
     .getByRole('button', { name: 'Edit quantity MAT-ELE-008' })
     .click();
@@ -72,9 +72,7 @@ test('should change the Profitability forecast after a quantity edit on Building
     (r) =>
       r.request().method() === 'PATCH' && r.url().includes('/items/') && r.ok(),
   );
-  await cable
-    .getByRole('textbox', { name: 'quantity MAT-ELE-008' })
-    .fill('20');
+  await cable.getByRole('textbox', { name: 'quantity MAT-ELE-008' }).fill('20');
   await page.keyboard.press('Enter');
   await saved;
 
