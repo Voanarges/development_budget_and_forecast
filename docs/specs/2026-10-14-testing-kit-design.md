@@ -88,6 +88,22 @@ of the result):
   AC-12 `e2e.test.sh` run-record cases pass (green record + baseline + commit, red record keeps the baseline,
   `--grep` partial, `KAIRON_E2E_NO_COMMIT`).
 
+## Addendum 2 (2026-10-14, owner: "set everything up, including Playwright MCP, so the finished app can be worked through")
+
+- Playwright MCP registered for this repo only: `claude mcp add -s local playwright-kairon -- ~/.local/npm-global/.../playwright-mcp
+  --headless --isolated --browser chromium --viewport-size 1440,900 --output-dir /tmp/kairon-explore/mcp
+  --allowed-origins "http://localhost:4274;http://localhost:3454;http://localhost:4300"`. It is named `playwright-kairon`
+  because `playwright` is taken in `~/.claude/mcp-optional.json` with another config (MCP rule 5). It uses the pinned
+  shared binary (0.0.80, rule 8), and worktrees don't get it (local scope is keyed to the main repo path). The live
+  probe passed: launch, navigate, `browser_snapshot` shows heading and button, a foreign origin is blocked.
+- `howItWorks/bin/app.sh up [--seed] | down | status`: main tree only. It takes the same `e2e` lock as `e2e.sh`, and
+  the lock's pid becomes the api server's, so the lock lives exactly as long as the app. It starts api and web in
+  their own process groups; `down` stops them and then runs the CLAUDE.md stop order. Tests: `tests/app.test.sh`.
+- `/explore-app`: the SUMMARY §3 journey through MCP at 3 viewports with console and network checks, then one
+  `exploratory-qa-tester` (now MCP-first), then a record `docs/test-runs/<stamp>-explore.md`, committed.
+- `.claude/settings.json`: allow `mcp__playwright-kairon`, deny `mcp__playwright-kairon__browser_run_code_unsafe`.
+- Block 01's branch already has the e2e webServer config (api 3454 + preview 4300); it is left to block 01.
+
 ## Judge constraints (binding)
 
 1. The only tag format is `[AC-NN.M]` in `it`/`test`/`describe` titles. Every mention of `AC:<slug>/<n>` and `docs/acceptance` is removed.
