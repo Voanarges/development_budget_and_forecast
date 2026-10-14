@@ -1,6 +1,11 @@
 import { Module } from '@nestjs/common';
+import { ProjectsModule } from '../projects/projects.module';
 import { ArchitectureController } from './architecture.controller';
+import { ArchitectureService } from './architecture.service';
 
-/** Stub from block 01, registered in AppModule; the owning block fills this folder. */
-@Module({ controllers: [ArchitectureController] })
+@Module({
+  imports: [ProjectsModule],
+  controllers: [ArchitectureController],
+  providers: [ArchitectureService],
+})
 export class ArchitectureModule {}
