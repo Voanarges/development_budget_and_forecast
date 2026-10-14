@@ -1,96 +1,90 @@
-# DefaultProject
+# default-project
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+Nx monorepo for live-coding sessions with Claude Code: NestJS + Prisma (SQLite) API, React + Vite web app, Playwright e2e and a shared types library. The `.claude/` kit adds a set of commands for the whole cycle — from a raw task to a shipped branch.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
-
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
-
-## Run tasks
-
-To run tasks with Nx use:
+## Quick start
 
 ```sh
-npx nx <target> <project-name>
+npm ci
+npx nx run api:prisma-migrate -- --name init   # first run only
+npx nx serve api                                # http://localhost:3454/api
+npx nx serve web                                # http://localhost:4274
+npx nx affected -t lint test typecheck --base=HEAD
 ```
 
-For example:
+Stack, versions and coding rules: `.claude/CLAUDE.md`.
 
-```sh
-npx nx build myproject
+## Layout
+
+| Path | What |
+|---|---|
+| `apps/api` | NestJS 11, Prisma 6 (SQLite), class-validator, Jest |
+| `apps/web` | React 19, Vite, React Router, TanStack Query, zustand, react-hook-form + zod, Vitest |
+| `apps/web-e2e` | Playwright (chromium) |
+| `libs/shared/types` | zod schemas and types, imported as `@default-project/types` |
+| `docs/tasks/` | task statements with acceptance criteria (`/create-task`) |
+| `docs/specs/` | design specs (`/brainstorm`) |
+| `docs/acceptance/` | acceptance registry: one file per feature, guarded by tagged e2e tests (`/e2e-full`) |
+| `docs/architecture/` | as-built architecture docs, index in its `README.md` (`/update-doc`) |
+
+## Commands
+
+Type them in Claude Code as `/name`. **Who** — whether Claude may start the command on its own or only you can.
+
+### Task cycle
+
+| Command | What it does | When | Who | Output |
+|---|---|---|---|---|
+| `/create-task` | Turns a raw statement (text, chat quotes, screenshots) into a task with goal, behaviour, atomic acceptance criteria and a how-to-verify path; subagents critique the draft; never writes code | a new task or bug arrives | you or Claude | `docs/tasks/<date>-<slug>.md` |
+| `/brainstorm` | Design before code: gathers context, asks one question at a time, proposes 2–3 approaches, runs a prosecutor / advocate / architect / tester panel and a judge, writes the spec, then starts implementing | the approach is not obvious | you or Claude | `docs/specs/<date>-<slug>-design.md` |
+| `/scaffold-feature` | Full vertical slice for a new entity: Prisma model and migration, NestJS module with DTOs and tests, shared zod schema, React page with a TanStack Query hook and a test | a new resource, CRUD, list or form | you or Claude | code + tests |
+| `/test` | Runs the narrowest relevant unit tests (Jest for api and libs, Vitest for web) | after changing code | you or Claude | exit codes |
+| `/test-task` | Proves the task end to end: Playwright test with criteria taken from the task text, red without the fix and green with it, plus negative assertions | a feature or fix is implemented | you or Claude | `apps/web-e2e/src/<slug>.spec.ts` |
+| `/update-doc` | Updates the one relevant architecture doc as-built; adds bug history; creates a new doc only for a real gap; refreshes the index | after a verified behaviour change | you or Claude | `docs/architecture/` |
+| `/done-check` | Definition of done by exit codes: format, lint, tests, typecheck, e2e when UI or controllers changed, test-weakening check, red-proof for fixes | before saying "done" | you or Claude | table of exit codes |
+
+### Review and shipping
+
+| Command | What it does | When | Who | Output |
+|---|---|---|---|---|
+| `/self-review` | One-pass review of the diff against the stack checklist | quick check after tests are green | you or Claude | findings with file:line |
+| `/review-full` | Adversarial review: prosecutor and defender in parallel, a judge rules on each finding; APPROVE / REQUEST CHANGES / NEEDS DISCUSSION | before `/mr`, or a thorough review | you or Claude | verdict + blocking list |
+| `/e2e-full` | Full regression: every lint / test / typecheck / build / e2e target; checks that every registry entry still has a live test; pins the current feature | before `/mr`, or "did anything old break?" | you or Claude | `docs/acceptance/<slug>.md` + report |
+| `/mr` | Scoped commits by file name → merge of main → checks → `/review-full` → completeness check → push (asks you) → PR with what / why / how to verify | work is finished | **you only** | commits, PR |
+| `/checkout <name>` | New branch from the freshest main, carrying unpushed commits and all uncommitted changes; the source branch is untouched | starting a new branch | **you only** | new branch |
+| `/report-tasks [date]` | The day's work across all sessions as "did X so that Y", git as the spine | end of day | **you only** | text in chat |
+
+### Session modes
+
+| Command | What it does |
+|---|---|
+| `/mode-process` | "Show the process": each prompt gets a checklist injected — restate, plan ≤ 5 steps, failing test first, `/done-check` before "done" |
+| `/mode-fast` | Back to the default fast mode. Every new session starts fast |
+
+Claude Code's built-in `/plan` gives a visible planning phase. `core-debug`, `core-explain` and `core-writing-skill` come from the user-level setup when it is present.
+
+### Typical flow
+
+```
+/create-task → /brainstorm → code + unit tests → /test-task → /update-doc → /done-check
+                                                             ↓
+                                   /e2e-full → /review-full → /mr
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+## Guardrails (hooks)
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+| Hook | Event | What it does |
+|---|---|---|
+| `block-no-verify.sh` | before Bash | blocks `--no-verify` and `--no-gpg-sign` |
+| `guard-command-secrets.sh` | before Bash | blocks cloud keys and `user:token@host` in command text |
+| `commit-quality.sh` | before Bash | secret scan of the staged diff, blocks committing `.env` |
+| `console-log-check.sh` | after Write / Edit | reminds to use Nest `Logger` instead of `console.log` in `apps/api` |
+| `interview-mode.sh` | every prompt | injects the process checklist in process mode, silent otherwise |
+| `session-reset.sh` | session start | resets the mode to fast |
+| `interview-stop-check.sh` | end of turn | in process mode only: reminds to run lint / test / typecheck; never blocks |
 
-## Add new projects
+Permissions (`.claude/settings.json`): Nx, npm, Prisma, Playwright, git, `gh` and `jq` run without prompts; `git push` always asks; reading `.env` and `~/.ssh`, and `rm -rf` are denied.
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
+## Not included on purpose
 
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
-```sh
-npx nx add @nx/react
-```
-
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
-
-```sh
-# Generate an app
-npx nx g @nx/react:app demo
-
-# Generate a library
-npx nx g @nx/react:lib some-lib
-```
-
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
-
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
-```
-
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
-
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
-```
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Commands tied to a particular issue tracker, hosting, deploy pipeline, production data or personal tooling (change journal, video transcripts, cross-project sync, account hand-off) are left out. The commands above keep only the part that works the same in any Nx repo.

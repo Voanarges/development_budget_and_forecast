@@ -8,12 +8,12 @@ export default defineConfig(() => ({
   root: import.meta.dirname,
   cacheDir: '../../node_modules/.vite/apps/web',
   server: {
-    port: 4200,
+    port: 4274,
     host: 'localhost',
-    proxy: { '/api': 'http://localhost:3000' },
+    proxy: { '/api': 'http://localhost:3454' },
   },
   preview: {
-    port: 4200,
+    port: 4274,
     host: 'localhost',
   },
   plugins: [react(), nxViteTsPaths(), nxCopyAssetsPlugin(['*.md'])],

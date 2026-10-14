@@ -5,12 +5,12 @@ Nx monorepo for live-coding sessions. Keep answers short, show commands and thei
 ## Stack (exact versions are pinned in package.json)
 - Nx 22.7.1, TypeScript 5.9, npm (`npm ci` only; `package-lock.json` is committed)
 - `apps/api` — NestJS 11, Prisma 6.19 with SQLite (`apps/api/prisma/schema.prisma`), class-validator, Jest (@swc/jest)
-- `apps/web` — React 19, Vite 8, React Router 7, TanStack Query 5, zustand 5, react-hook-form + zod, Vitest + Testing Library; dev server proxies `/api` to `localhost:3000`
+- `apps/web` — React 19, Vite 8, React Router 7, TanStack Query 5, zustand 5, react-hook-form + zod, Vitest + Testing Library; dev server proxies `/api` to `localhost:3454`
 - `apps/web-e2e` — Playwright (chromium)
 - `libs/shared/types` — zod schemas and inferred types, imported as `@default-project/types`
 
 ## Commands
-- Serve: `npx nx serve api` (http://localhost:3000/api), `npx nx serve web` (http://localhost:4200)
+- Serve: `npx nx serve api` (http://localhost:3454/api), `npx nx serve web` (http://localhost:4274)
 - Checks: `npx nx affected -t lint test typecheck --base=HEAD`; everything: `npx nx run-many -t lint test typecheck build`
 - E2E: `npx nx e2e web-e2e`
 - Prisma: `npx nx run api:prisma-migrate -- --name <change>`, `npx nx run api:prisma-generate`
@@ -63,5 +63,10 @@ Nx monorepo for live-coding sessions. Keep answers short, show commands and thei
 - No string-built SQL (use `Prisma.sql` or the query builder); no `dangerouslySetInnerHTML` with user data.
 - Secrets never in code or in `VITE_*` variables; `.env` is git-ignored, `.env.example` documents variables.
 
+## Commands (full list with descriptions: README.md)
+- Flow for a task: `/create-task` → `/brainstorm` → code with tests → `/test-task` → `/update-doc` → `/done-check`; before shipping `/e2e-full`, `/review-full`, then the user runs `/mr`.
+- Owner-only (never invoke them yourself): `/mr`, `/checkout`, `/report-tasks`, `/mode-process`, `/mode-fast`.
+- Artifacts: `docs/tasks/` (task statements), `docs/specs/` (designs), `docs/acceptance/` (acceptance registry), `docs/architecture/` (as-built docs, index in its README).
+
 ## Global skills available here
-`core-debug` (root-cause debugging), `core-explain` (plain-language explanation) come from the user-level setup and work in this project too.
+`core-debug` (root-cause debugging), `core-explain` (plain-language explanation), `core-writing-skill` (writing new skills) come from the user-level setup and work in this project too.
