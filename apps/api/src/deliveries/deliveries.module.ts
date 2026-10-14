@@ -1,6 +1,11 @@
 import { Module } from '@nestjs/common';
+import { ProjectsModule } from '../projects/projects.module';
 import { DeliveriesController } from './deliveries.controller';
+import { DeliveriesService } from './deliveries.service';
 
-/** Stub from block 01, registered in AppModule; the owning block fills this folder. */
-@Module({ controllers: [DeliveriesController] })
+@Module({
+  imports: [ProjectsModule],
+  controllers: [DeliveriesController],
+  providers: [DeliveriesService],
+})
 export class DeliveriesModule {}
