@@ -30,7 +30,13 @@ fake() { export KAIRON_E2E_CMD="cp '$1' \"\$PLAYWRIGHT_JSON_OUTPUT_NAME\"; exit 
 commits() { git -C "$T/main" rev-list --count HEAD; }
 export KAIRON_E2E_REPORT="$T/report.json"
 
-fake "$T/pass.json" 0; c0=$(commits)
+fake "$T/fail.json" 1; cn=$(commits)
+(cd "$T/main" && bash "$E2E" --grep 'AC-01' >/dev/null 2>&1); is "red run before any baseline exits 1" $? 1
+is "red run before any baseline: record committed" "$(commits)" "$((cn + 1))"
+is "red run before any baseline: main stays clean" "$(git -C "$T/main" status --porcelain | wc -l | tr -d ' ')" 0
+git -C "$T/main" rm -rq docs && git -C "$T/main" commit -qm "reset runs"
+
+sleep 1; fake "$T/pass.json" 0; c0=$(commits)
 (cd "$T/main" && bash "$E2E" >/dev/null 2>&1); is "green run exits 0" $? 0
 is "green run: one record" "$(ls "$RUNS"/*-e2e.md 2>/dev/null | wc -l | tr -d ' ')" 1
 grep -q '^# e2e run .* — PASS' "$RUNS"/*-e2e.md; is "record says PASS" $? 0
@@ -51,6 +57,11 @@ ls -t "$RUNS"/*-e2e.md | head -1 | xargs grep -q 'partial run'; is "partial run 
 sleep 1; c2=$(commits)
 (cd "$T/main" && KAIRON_E2E_NO_COMMIT=1 bash "$E2E" >/dev/null 2>&1)
 is "KAIRON_E2E_NO_COMMIT keeps the record uncommitted" "$(commits)" "$c2"
+
+# --- the real command must bypass the Nx cache (a cached e2e target replays old output and writes no JSON) ---
+mkdir -p "$T/bin"; printf '#!/bin/sh\necho "$@" > "%s/npx.args"\n' "$T" >"$T/bin/npx"; chmod +x "$T/bin/npx"
+(cd "$T/main" && unset KAIRON_E2E_CMD && PATH="$T/bin:$PATH" KAIRON_E2E_NO_COMMIT=1 bash "$E2E" >/dev/null 2>&1)
+grep -q -- '--skip-nx-cache' "$T/npx.args" 2>/dev/null; is "nx e2e runs with --skip-nx-cache" $? 0
 
 [ "$FAILS" = 0 ] && { echo "e2e tests: PASS"; exit 0; }
 echo "e2e tests: $FAILS FAILED"; exit 1

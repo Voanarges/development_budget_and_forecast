@@ -39,7 +39,8 @@ mkdir -p "$(dirname "$REPORT")" "$RUNS"; rm -f "$REPORT"
 if [ -n "${KAIRON_E2E_CMD:-}" ]; then
   set -- sh -c "$KAIRON_E2E_CMD"
 else
-  set -- npx nx e2e web-e2e --outputStyle=static -- --reporter=list,json
+  # --skip-nx-cache: a cached e2e target replays old output and never writes the JSON report
+  set -- npx nx e2e web-e2e --outputStyle=static --skip-nx-cache -- --reporter=list,json
   [ -n "$GREP" ] && set -- "$@" --grep "$GREP"
 fi
 PLAYWRIGHT_JSON_OUTPUT_NAME="$REPORT" "$BIN/heavy.sh" "$MAIN" "$@"
@@ -88,7 +89,9 @@ DIRTY=$(git status --porcelain -- . ':(exclude)docs/test-runs' | wc -l | tr -d '
 } >"$REC"
 echo "record: ${REC#$MAIN/}"
 if [ -z "${KAIRON_E2E_NO_COMMIT:-}" ]; then
-  "$BIN/main-commit.sh" "test(run): e2e $STAMP $VERDICT" "$REC" "$BASE" >/dev/null 2>&1 \
+  # the baseline exists only after the first green full run; git add fails on a missing path
+  COMMIT_PATHS=("$REC"); [ -e "$BASE" ] && COMMIT_PATHS+=("$BASE")
+  "$BIN/main-commit.sh" "test(run): e2e $STAMP $VERDICT" "${COMMIT_PATHS[@]}" >/dev/null 2>&1 \
     || echo "WARNING: could not commit ${REC#$MAIN/}: commit it with bin/main-commit.sh (the main tree must stay clean for merges)"
 fi
 echo "E2E: $VERDICT"
