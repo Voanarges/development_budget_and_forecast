@@ -12,7 +12,7 @@ allowed-tools: Bash(git *), Bash(npx nx *), Bash(gh *), Read, Grep, Skill, Agent
 5. **Checks on the merged state:**
    - `npx nx format:check`
    - `npx nx affected -t lint test typecheck build --base=$BASE`
-   - `npx nx e2e web-e2e` when `apps/web/src` or any `*.controller.ts` changed.
+   - `bash howItWorks/bin/e2e.sh` when `apps/web/src` or any `*.controller.ts` changed (main tree, e2e lock, AC ledger).
    Red = fix now, not "pre-existing".
 6. **Review:** `/review-full` on `git diff $BASE...HEAD`. Blockers are fixed, then back to step 2.
 7. **Completeness:** `git rev-list --count HEAD..$BASE` must be 0; every file in `git diff --name-status $BASE HEAD` is explained by the plan.

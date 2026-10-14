@@ -24,7 +24,8 @@ Stack, versions and coding rules: `.claude/CLAUDE.md`.
 | `libs/shared/types` | zod schemas and types, imported as `@default-project/types` |
 | `docs/tasks/` | task statements with acceptance criteria (`/create-task`) |
 | `docs/specs/` | design specs (`/brainstorm`) |
-| `docs/acceptance/` | acceptance registry: one file per feature, guarded by tagged e2e tests (`/e2e-full`) |
+| `howItWorks/NN-*/BLOCK.md` | acceptance registry: `- AC-NN.M` lines; tests carry `[AC-NN.M]` in their titles; `howItWorks/bin/ac-ledger.sh` reconciles them |
+| `docs/test-runs/` | test results in git: one record per e2e run and `ledger-baseline.txt`, the ACs proven once — `ac-ledger.sh` fails with REGRESSED if any of them breaks |
 | `docs/architecture/` | as-built architecture docs, index in its `README.md` (`/update-doc`) |
 
 ## Commands
@@ -39,9 +40,10 @@ Type them in Claude Code as `/name`. **Who** — whether Claude may start the co
 | `/brainstorm` | Design before code: gathers context, asks one question at a time, proposes 2–3 approaches, runs a prosecutor / advocate / architect / tester panel and a judge, writes the spec, then starts implementing | the approach is not obvious | you or Claude | `docs/specs/<date>-<slug>-design.md` |
 | `/scaffold-feature` | Full vertical slice for a new entity: Prisma model and migration, NestJS module with DTOs and tests, shared zod schema, React page with a TanStack Query hook and a test | a new resource, CRUD, list or form | you or Claude | code + tests |
 | `/test` | Runs the narrowest relevant unit tests (Jest for api and libs, Vitest for web) | after changing code | you or Claude | exit codes |
-| `/test-task` | Proves the task end to end: Playwright test with criteria taken from the task text, red without the fix and green with it, plus negative assertions | a feature or fix is implemented | you or Claude | `apps/web-e2e/src/<slug>.spec.ts` |
+| `/test-task` | Proves the task by its `AC-NN.M` criteria: a tagged Jest / Vitest / Playwright test per AC, red without the fix and green with it, plus negative assertions (e2e specs are written in blocks, run in the main tree) | a feature or fix is implemented | you or Claude | tagged specs + ledger rows |
+| `/fix-test` | Repairs a red test without tuning it to green: infrastructure vs regression, 2–4 hypotheses, root cause, fix the product | a specific test fails | you or Claude | root cause + red→green |
 | `/update-doc` | Updates the one relevant architecture doc as-built; adds bug history; creates a new doc only for a real gap; refreshes the index | after a verified behaviour change | you or Claude | `docs/architecture/` |
-| `/done-check` | Definition of done by exit codes: format, lint, tests, typecheck, e2e when UI or controllers changed, test-weakening check, red-proof for fixes | before saying "done" | you or Claude | table of exit codes |
+| `/done-check` | Definition of done by exit codes. Block worktree: `howItWorks/bin/check.sh NN` + `ac-ledger.sh --block NN`. Main tree: format, affected lint/test/typecheck, test-weakening check, AC ledger, e2e after merges | before saying "done" | you or Claude | table of exit codes |
 
 ### Review and shipping
 
@@ -49,7 +51,7 @@ Type them in Claude Code as `/name`. **Who** — whether Claude may start the co
 |---|---|---|---|---|
 | `/self-review` | One-pass review of the diff against the stack checklist | quick check after tests are green | you or Claude | findings with file:line |
 | `/review-full` | Adversarial review: prosecutor and defender in parallel, a judge rules on each finding; APPROVE / REQUEST CHANGES / NEEDS DISCUSSION | before `/mr`, or a thorough review | you or Claude | verdict + blocking list |
-| `/e2e-full` | Full regression: every lint / test / typecheck / build / e2e target; checks that every registry entry still has a live test; pins the current feature | before `/mr`, or "did anything old break?" | you or Claude | `docs/acceptance/<slug>.md` + report |
+| `/e2e-full` | Full regression, main tree only: every lint / test / typecheck / build target, then e2e under the machine-wide lock (`howItWorks/bin/e2e.sh`) and the AC ledger against the JSON report — merged blocks must have no UNCOVERED / SKIPPED / FAILED ACs | after merges, before `/mr`, or "did anything old break?" | you or Claude | report + ledger SUMMARY |
 | `/mr` | Scoped commits by file name → merge of main → checks → `/review-full` → completeness check → push (asks you) → PR with what / why / how to verify | work is finished | **you only** | commits, PR |
 | `/checkout <name>` | New branch from the freshest main, carrying unpushed commits and all uncommitted changes; the source branch is untouched | starting a new branch | **you only** | new branch |
 | `/report-tasks [date]` | The day's work across all sessions as "did X so that Y", git as the spine | end of day | **you only** | text in chat |
@@ -70,6 +72,8 @@ Claude Code's built-in `/plan` gives a visible planning phase. `core-debug`, `co
                                                              ↓
                                    /e2e-full → /review-full → /mr
 ```
+
+A red test at any point → `/fix-test`. Testing agents in `.claude/agents/` (spawned by the skills, not called directly): `test-automator` (tagged guard test + red-proof), `regression-scout` (diff → ACs to re-run), `exploratory-qa-tester` (main tree, once before shipping).
 
 ## Guardrails (hooks)
 

@@ -15,24 +15,34 @@
 #   MANUAL     checked by a command or by hand, not by a test
 #   ORPHAN     tag without a registry line
 #   DUPLICATE  the same id twice in the registry
+#   REGRESSED  the AC is in the baseline (it was proven OK once) and is not OK now — fails in ANY block
+#   RETIRED    a baseline id that is no longer in the registry (the owner dropped the AC) — info only
 #
-# Exit: 1 on any ORPHAN/DUPLICATE, or on UNCOVERED/SKIPPED/FAILED (and UNRUN with --e2e-report) in a gated
+# Baseline (regression ratchet): $MAIN/docs/test-runs/ledger-baseline.txt, lines "AC-NN.M unit|e2e".
+# Only grows: --write-baseline FILE adds the ACs that are OK in this run (e2e ones only when a report proved
+# them). e2e baseline ids are judged only when --e2e-report is given; with --block only that block's ids.
+#
+# Exit: 1 on any ORPHAN/DUPLICATE/REGRESSED, or on UNCOVERED/SKIPPED/FAILED (and UNRUN with --e2e-report) in a gated
 #       block — gated = merged ($STATE/NN.merged.flag), or the block given with --block. 0 otherwise, 2 usage.
 #       Unmerged (incl. stretch) blocks are reported but never fail the run.
 #
-# Usage: ac-ledger.sh [--root DIR] [--block NN] [--e2e-report FILE]     DIR = repo/worktree to scan (default: git root)
+# Usage: ac-ledger.sh [--root DIR] [--block NN] [--e2e-report FILE] [--baseline FILE | --no-baseline]
+#                    [--write-baseline FILE]         DIR = repo/worktree to scan (default: git root)
 #        ac-ledger.sh --self-test
 # Bash 3.2 compatible (macOS /bin/bash).
 . "$(dirname "$0")/lib.sh"
 
-ROOT="" BLOCK="" REPORT=""
+ROOT="" BLOCK="" REPORT="" BASE="$MAIN/docs/test-runs/ledger-baseline.txt" WRITE=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --root) ROOT="${2:-}"; shift 2 ;;
     --block) BLOCK="${2:-}"; shift 2 ;;
     --e2e-report) REPORT="${2:-}"; shift 2 ;;
+    --baseline) BASE="${2:-}"; [ -f "$BASE" ] || { echo "ac-ledger: no such baseline: $BASE" >&2; exit 2; }; shift 2 ;;
+    --no-baseline) BASE=""; shift ;;
+    --write-baseline) WRITE="${2:-}"; [ -n "$WRITE" ] || { echo "ac-ledger: --write-baseline wants a file" >&2; exit 2; }; shift 2 ;;
     --self-test) exec bash "$BIN/tests/ac-ledger.test.sh" ;;
-    -h | --help) sed -n '2,26p' "$0"; exit 0 ;;
+    -h | --help) sed -n '2,35p' "$0"; exit 0 ;;
     *) echo "ac-ledger: unknown argument: $1" >&2; exit 2 ;;
   esac
 done
@@ -98,27 +108,18 @@ echo "#TAG" >"$TMP/tag"
 echo "#REP" >"$TMP/rep"
 if [ -n "$REPORT" ]; then
   command -v node >/dev/null 2>&1 || { echo "ac-ledger: node is required for --e2e-report" >&2; exit 2; }
-  node -e '
-    const r = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
-    const walk = (s, path) => {
-      const here = s.title ? [...path, s.title] : path;
-      for (const sp of s.specs || []) {
-        const st = (sp.tests || []).map((t) => t.status);
-        const v = st.length && st.every((x) => x === "expected" || x === "flaky") ? "passed"
-          : st.some((x) => x === "unexpected") ? "failed" : "skipped";
-        console.log(v + "\t" + [...here, sp.title].join(" > "));
-      }
-      for (const c of s.suites || []) walk(c, here);
-    };
-    for (const s of r.suites || []) walk(s, []);
-  ' "$REPORT" >>"$TMP/rep" || { echo "ac-ledger: cannot parse $REPORT" >&2; exit 2; }
+  node "$BIN/pw-report.js" "$REPORT" >>"$TMP/rep" || { echo "ac-ledger: cannot parse $REPORT" >&2; exit 2; }
 fi
 
-# 4. classify
+# 4. baseline → "id \t kind"
+echo "#BAS" >"$TMP/bas"
+[ -n "$BASE" ] && [ -f "$BASE" ] && grep -E '^AC-[0-9]{2}\.[0-9]+ (unit|e2e)$' "$BASE" | tr ' ' '\t' >>"$TMP/bas"
+
+# 5. classify
 MERGED=" "
 for f in "$STATE"/[0-9][0-9].merged.flag; do [ -e "$f" ] && MERGED="$MERGED$(basename "$f" | cut -c1-2) "; done
 
-awk -F'\t' -v merged="$MERGED" -v only="$BLOCK" -v hasrep="${REPORT:+1}" '
+awk -F'\t' -v merged="$MERGED" -v only="$BLOCK" -v hasrep="${REPORT:+1}" -v okf="$TMP/ok" '
   $0 == "#REG" { sec = "reg"; next }
   $0 == "#TAG" { sec = "tag"; next }
   $0 == "#REP" { sec = "rep"; next }
@@ -128,12 +129,15 @@ awk -F'\t' -v merged="$MERGED" -v only="$BLOCK" -v hasrep="${REPORT:+1}" '
     if (index("," files[$1] ",", "," $2 ",") == 0) files[$1] = files[$1] (files[$1] == "" ? "" : ",") $2
     next
   }
+  $0 == "#BAS" { sec = "bas"; next }
   sec == "rep" { rs[++rn] = $1; rt[rn] = $2; next }
+  sec == "bas" { if (!($1 in bk0)) { bord[++bn] = $1; bk0[$1] = $2 } next }
   function out(b, id, bk, why,   g) {
-    c[b]++
+    c[b]++; cur[id] = b
+    if (b == "OK") print id " " (kind[id] == "e2e" ? "e2e" : "unit") > okf
     printf "%-10s %-9s %s\n", b, id, why
     g = (only != "") ? (bk == only) : (index(merged, " " bk " ") > 0)
-    if (b == "ORPHAN" || b == "DUPLICATE") bad = 1
+    if (b == "ORPHAN" || b == "DUPLICATE" || b == "REGRESSED") bad = 1
     else if (g && (b == "UNCOVERED" || b == "SKIPPED" || b == "FAILED" || (b == "UNRUN" && hasrep))) bad = 1
   }
   END {
@@ -157,8 +161,29 @@ awk -F'\t' -v merged="$MERGED" -v only="$BLOCK" -v hasrep="${REPORT:+1}" '
         out("UNCOVERED", id, bk, "tagged only in a" (other == "unit" ? " unit" : "n e2e") " spec: " f)
       else out("UNCOVERED", id, bk, "no tagged test")
     }
+    for (i = 1; i <= bn; i++) {
+      id = bord[i]; bk = substr(id, 4, 2)
+      if (only != "" && bk != only) continue
+      if (!(id in n)) { printf "%-10s %-9s %s\n", "RETIRED", id, "in the baseline, no longer in BLOCK.md"; continue }
+      if (bk0[id] == "e2e" && !hasrep) continue
+      if (cur[id] != "OK") out("REGRESSED", id, bk, "was OK in the baseline, now " cur[id])
+    }
     for (id in tagged) if (!(id in n) && (only == "" || substr(id, 4, 2) == only)) out("ORPHAN", id, substr(id, 4, 2), files[id])
-    printf "SUMMARY OK=%d UNCOVERED=%d SKIPPED=%d UNRUN=%d FAILED=%d MANUAL=%d ORPHAN=%d DUPLICATE=%d\n", \
-      c["OK"], c["UNCOVERED"], c["SKIPPED"], c["UNRUN"], c["FAILED"], c["MANUAL"], c["ORPHAN"], c["DUPLICATE"]
+    printf "SUMMARY OK=%d UNCOVERED=%d SKIPPED=%d UNRUN=%d FAILED=%d MANUAL=%d ORPHAN=%d DUPLICATE=%d REGRESSED=%d\n", \
+      c["OK"], c["UNCOVERED"], c["SKIPPED"], c["UNRUN"], c["FAILED"], c["MANUAL"], c["ORPHAN"], c["DUPLICATE"], c["REGRESSED"]
     exit bad ? 1 : 0
-  }' "$TMP/reg" "$TMP/tag" "$TMP/rep"
+  }' "$TMP/reg" "$TMP/tag" "$TMP/rep" "$TMP/bas"
+RC=$?
+
+# 6. grow the baseline (union, never shrinks; e2e ids enter only when a report proved them)
+if [ -n "$WRITE" ]; then
+  touch "$TMP/ok"; [ -n "$REPORT" ] || grep -v ' e2e$' "$TMP/ok" >"$TMP/ok2" || true
+  [ -n "$REPORT" ] && cp "$TMP/ok" "$TMP/ok2"
+  mkdir -p "$(dirname "$WRITE")"
+  { [ -f "$WRITE" ] && grep -E '^AC-' "$WRITE"; cat "$TMP/ok2"; } | sort -u -t' ' -k1,1 >"$TMP/new"
+  { echo "# AC ledger baseline: ACs proven OK at least once. ac-ledger.sh fails (REGRESSED) if one stops being OK."
+    echo "# Grown only by e2e.sh after a green run (ac-ledger.sh --write-baseline). Never delete a line to hide a regression;"
+    echo "# an AC the owner dropped from BLOCK.md shows as RETIRED and may then be removed here."
+    cat "$TMP/new"; } >"$WRITE"
+fi
+exit $RC
