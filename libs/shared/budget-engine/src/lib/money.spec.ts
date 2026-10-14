@@ -61,7 +61,7 @@ describe('itemPlannedCents', () => {
   });
 });
 
-describe('parseEurToCents', () => {
+describe('parseEurToCents [AC-01.8]', () => {
   it.each([
     ['1,234.56', 123456],
     ['12', 1200],
