@@ -1,19 +1,38 @@
 import { act, fireEvent, screen, within } from '@testing-library/react';
 import { Route, Routes } from 'react-router-dom';
 import { notifyManager } from '@tanstack/react-query';
-import { makeItem, makeLine, makeOrg, makeProject, makeSnapshot } from '@default-project/budget-engine';
+import {
+  makeItem,
+  makeLine,
+  makeOrg,
+  makeProject,
+  makeSnapshot,
+} from '@default-project/budget-engine';
 import { BUDGET_CATALOG, type ProjectSnapshot } from '@default-project/types';
 import { autosaveQueue, AUTOSAVE_DELAY_MS } from '../../lib/autosave-queue';
 import { useUiStore } from '../../lib/ui-store';
-import { fakeResponse, mockApi, renderWithProviders } from '../../testing/render';
+import {
+  fakeResponse,
+  mockApi,
+  renderWithProviders,
+} from '../../testing/render';
 import { ProjectPage } from '../project/project-page';
 import { MarketingPage } from './marketing-page';
 
 const PID = 'p1';
 const MARKETING = BUDGET_CATALOG.filter((c) => c.category === 'MARKETING');
-const AGENCY = makeOrg({ id: 'org-ag', name: 'Nordlicht Immobilienmarketing GmbH', role: 'AGENCY', contactPerson: 'Paul Hartig' });
+const AGENCY = makeOrg({
+  id: 'org-ag',
+  name: 'Nordlicht Immobilienmarketing GmbH',
+  role: 'AGENCY',
+  contactPerson: 'Paul Hartig',
+});
 
-const APPROVED: Record<string, number> = { listings: 160_000, 'paid-search': 270_000, social: 300_000 };
+const APPROVED: Record<string, number> = {
+  listings: 160_000,
+  'paid-search': 270_000,
+  social: 300_000,
+};
 
 /**
  * 8 MARKETING lines + one CONSTRUCTION line that sets the size of the contract price.
@@ -32,18 +51,53 @@ function fixture(constructionApprovedCents: number): ProjectSnapshot {
         approvedCents: APPROVED[c.section] ?? 0,
       }),
     ),
-    makeLine({ id: 'c-shell', projectId: PID, category: 'CONSTRUCTION', section: 'shell', name: 'Shell construction', approvedCents: constructionApprovedCents }),
+    makeLine({
+      id: 'c-shell',
+      projectId: PID,
+      category: 'CONSTRUCTION',
+      section: 'shell',
+      name: 'Shell construction',
+      approvedCents: constructionApprovedCents,
+    }),
   ];
-  const srv = (id: string, section: string, code: string, qty: number, price: number, extra = {}) =>
-    makeItem({ id, projectId: PID, budgetLineId: `m-${section}`, kind: 'SERVICE', code, name: id, unit: 'lump', qtyMilli: qty * 1000, unitPriceCents: price, ...extra });
+  const srv = (
+    id: string,
+    section: string,
+    code: string,
+    qty: number,
+    price: number,
+    extra = {},
+  ) =>
+    makeItem({
+      id,
+      projectId: PID,
+      budgetLineId: `m-${section}`,
+      kind: 'SERVICE',
+      code,
+      name: id,
+      unit: 'lump',
+      qtyMilli: qty * 1000,
+      unitPriceCents: price,
+      ...extra,
+    });
   return makeSnapshot({
     project: makeProject({ id: PID, markupBps: 1500 }),
     budgetLines: lines,
     organizations: [AGENCY],
     items: [
-      srv('ImmoScout24 package', 'listings', 'SRV-LST-001', 4, 40_000, { startDate: '2026-11-01', endDate: '2027-02-28' }),
-      srv('Google Ads', 'paid-search', 'SRV-SEA-001', 1, 270_000, { startDate: '2026-11-01', endDate: '2027-02-28' }),
-      srv('Meta lead ads', 'social', 'SRV-SOC-001', 3, 100_000, { startDate: '2026-10-01', endDate: '2026-12-31', contractorId: AGENCY.id }),
+      srv('ImmoScout24 package', 'listings', 'SRV-LST-001', 4, 40_000, {
+        startDate: '2026-11-01',
+        endDate: '2027-02-28',
+      }),
+      srv('Google Ads', 'paid-search', 'SRV-SEA-001', 1, 270_000, {
+        startDate: '2026-11-01',
+        endDate: '2027-02-28',
+      }),
+      srv('Meta lead ads', 'social', 'SRV-SOC-001', 3, 100_000, {
+        startDate: '2026-10-01',
+        endDate: '2026-12-31',
+        contractorId: AGENCY.id,
+      }),
     ],
   });
 }
@@ -51,7 +105,8 @@ function fixture(constructionApprovedCents: number): ProjectSnapshot {
 function setup(snapshot: ProjectSnapshot, url: string) {
   const fetchMock = mockApi({
     [`GET /api/projects/${PID}`]: () => fakeResponse(snapshot),
-    [`PATCH /api/projects/${PID}/items/`]: () => fakeResponse(snapshot.items[0]),
+    [`PATCH /api/projects/${PID}/items/`]: () =>
+      fakeResponse(snapshot.items[0]),
     'GET /api/organizations': () => fakeResponse([AGENCY]),
   });
   renderWithProviders(
@@ -62,7 +117,8 @@ function setup(snapshot: ProjectSnapshot, url: string) {
     </Routes>,
     { url },
   );
-  const patches = () => fetchMock.mock.calls.filter(([, init]) => init?.method === 'PATCH');
+  const patches = () =>
+    fetchMock.mock.calls.filter(([, init]) => init?.method === 'PATCH');
   return { fetchMock, patches };
 }
 
@@ -72,19 +128,34 @@ const settle = async () => {
 
 function editMoney(label: string, value: string) {
   fireEvent.click(screen.getByRole('button', { name: `Edit ${label}` }));
-  fireEvent.change(screen.getByRole('textbox', { name: label }), { target: { value } });
-  fireEvent.keyDown(screen.getByRole('textbox', { name: label }), { key: 'Enter' });
+  fireEvent.change(screen.getByRole('textbox', { name: label }), {
+    target: { value },
+  });
+  fireEvent.keyDown(screen.getByRole('textbox', { name: label }), {
+    key: 'Enter',
+  });
 }
 
 // The KPI strip, not the BudgetHealthPanel, which uses the same dt label.
 const kpi = (label: string) =>
-  screen.getAllByText(label, { selector: 'dt' }).find((el) => !el.closest('[aria-label="Budget health"]'))?.nextElementSibling?.textContent;
+  screen
+    .getAllByText(label, { selector: 'dt' })
+    .find((el) => !el.closest('[aria-label="Budget health"]'))
+    ?.nextElementSibling?.textContent;
 // Sub-nav buttons carry an optional "Over" badge in their accessible name.
-const navButton = (nav: HTMLElement, name: string) => within(nav).getByRole('button', { name: new RegExp(`^${name}`) });
-const legend = (name: string) => within(screen.getByRole('list', { name: 'Channel mix legend' })).getByRole('listitem', { name });
+const navButton = (nav: HTMLElement, name: string) =>
+  within(nav).getByRole('button', { name: new RegExp(`^${name}`) });
+const legend = (name: string) =>
+  within(screen.getByRole('list', { name: 'Channel mix legend' })).getByRole(
+    'listitem',
+    { name },
+  );
 const healthForecast = () =>
-  within(screen.getByLabelText('Budget health')).getByText((_, el) => el?.tagName === 'DT' && el.textContent?.startsWith('Forecast (EAC)') === true)
-    .nextElementSibling?.textContent;
+  within(screen.getByLabelText('Budget health')).getByText(
+    (_, el) =>
+      el?.tagName === 'DT' &&
+      el.textContent?.startsWith('Forecast (EAC)') === true,
+  ).nextElementSibling?.textContent;
 
 describe('MarketingPage', () => {
   beforeEach(() => {
@@ -108,10 +179,15 @@ describe('MarketingPage', () => {
     });
 
     it('should list the 8 marketing sections and keep an edit when switching sections [AC-09.1]', async () => {
-      const { patches } = setup(fixture(60_000_000), `/projects/${PID}/marketing/listings`);
+      const { patches } = setup(
+        fixture(60_000_000),
+        `/projects/${PID}/marketing/listings`,
+      );
       await settle();
 
-      const nav = screen.getByRole('navigation', { name: 'Marketing channels' });
+      const nav = screen.getByRole('navigation', {
+        name: 'Marketing channels',
+      });
       expect(within(nav).getAllByRole('button')).toHaveLength(8);
       expect(navButton(nav, 'Sales commission')).toBeTruthy();
 
@@ -123,16 +199,24 @@ describe('MarketingPage', () => {
 
       fireEvent.click(navButton(nav, 'Property portals'));
       await settle();
-      expect(screen.getByRole('button', { name: 'Edit Unit price SRV-LST-001' }).textContent).toBe('€500.00');
+      expect(
+        screen.getByRole('button', { name: 'Edit Unit price SRV-LST-001' })
+          .textContent,
+      ).toBe('€500.00');
 
       await act(() => vi.advanceTimersByTimeAsync(AUTOSAVE_DELAY_MS));
       await settle();
       expect(patches()).toHaveLength(1);
-      expect(JSON.parse(patches()[0][1]?.body as string)).toEqual({ unitPriceCents: 50_000 });
+      expect(JSON.parse(patches()[0][1]?.body as string)).toEqual({
+        unitPriceCents: 50_000,
+      });
     });
 
     it('should update the donut legend, the MARKETING total and the KPI at once when paid-search cost changes [AC-09.2]', async () => {
-      const { patches } = setup(fixture(60_000_000), `/projects/${PID}/marketing/paid-search`);
+      const { patches } = setup(
+        fixture(60_000_000),
+        `/projects/${PID}/marketing/paid-search`,
+      );
       await settle();
       expect(legend('Paid search').textContent).toContain('€2,700');
       expect(healthForecast()).toBe('€7,300');
@@ -155,18 +239,26 @@ describe('MarketingPage', () => {
   it('should flag a campaign as Running now when today is between its start and end [AC-09.3]', async () => {
     setup(fixture(60_000_000), `/projects/${PID}/marketing/social`);
 
-    const row = (await screen.findByText('SRV-SOC-001')).closest('tr') as HTMLElement;
-    expect(within(row).getByText('Running now', { selector: 'span' })).toBeTruthy();
+    const row = (await screen.findByText('SRV-SOC-001')).closest(
+      'tr',
+    ) as HTMLElement;
+    expect(
+      within(row).getByText('Running now', { selector: 'span' }),
+    ).toBeTruthy();
     expect(within(row).queryByText('Planned', { selector: 'span' })).toBeNull();
   });
 
   it('should show a Planned flag when the campaign starts after today [AC-09.3]', async () => {
     setup(fixture(60_000_000), `/projects/${PID}/marketing/paid-search`);
 
-    const row = (await screen.findByText('SRV-SEA-001')).closest('tr') as HTMLElement;
+    const row = (await screen.findByText('SRV-SEA-001')).closest(
+      'tr',
+    ) as HTMLElement;
     // `span` = the campaign badge, not the "Planned" option of the status select
     expect(within(row).getByText('Planned', { selector: 'span' })).toBeTruthy();
-    expect(within(row).queryByText('Running now', { selector: 'span' })).toBeNull();
+    expect(
+      within(row).queryByText('Running now', { selector: 'span' }),
+    ).toBeNull();
   });
 
   it('should show an ok badge when the marketing share is at most 5 % of the contract price [AC-09.4]', async () => {
@@ -201,7 +293,14 @@ describe('MarketingPage', () => {
     useUiStore.setState({ lastSection: { marketing: 'events' } });
     setup(fixture(60_000_000), `/projects/${PID}/marketing`);
 
-    const nav = await screen.findByRole('navigation', { name: 'Marketing channels' });
-    expect(await within(nav).findByRole('button', { name: 'Show house & open days', current: 'page' })).toBeTruthy();
+    const nav = await screen.findByRole('navigation', {
+      name: 'Marketing channels',
+    });
+    expect(
+      await within(nav).findByRole('button', {
+        name: 'Show house & open days',
+        current: 'page',
+      }),
+    ).toBeTruthy();
   });
 });
