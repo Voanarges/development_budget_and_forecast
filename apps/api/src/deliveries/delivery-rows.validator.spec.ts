@@ -29,7 +29,7 @@ describe('headerError', () => {
 
   it('should accept a BOM and spaces around the first header', () => {
     const { itemCode, ...rest } = row();
-    expect(headerError([{ '﻿ itemCode ': itemCode, ...rest }])).toBeNull();
+    expect(headerError([{ '\uFEFF itemCode ': itemCode, ...rest }])).toBeNull();
   });
 
   it('should report no data rows when rows are empty [AC-10.4]', () => {
@@ -93,14 +93,23 @@ describe('validateDeliveryRows', () => {
     ['invoiceAmountEur', '1,234.00'],
     ['kind', 'SHIPPED'],
   ])('should reject %s = %p', (field, value) => {
-    const { valid, errors } = validateDeliveryRows([row({ [field]: value })], items);
+    const { valid, errors } = validateDeliveryRows(
+      [row({ [field]: value })],
+      items,
+    );
     expect(valid).toEqual([]);
     expect(errors).toEqual([expect.objectContaining({ row: 1, field })]);
   });
 
   it('should accept a leap day, 0.001 quantity and a 1-decimal amount', () => {
     const { valid, errors } = validateDeliveryRows(
-      [row({ date: '2028-02-29', quantity: '0.001', invoiceAmountEur: '10.5' })],
+      [
+        row({
+          date: '2028-02-29',
+          quantity: '0.001',
+          invoiceAmountEur: '10.5',
+        }),
+      ],
       items,
     );
     expect(errors).toEqual([]);
@@ -111,7 +120,11 @@ describe('validateDeliveryRows', () => {
     const { valid, errors } = validateDeliveryRows(
       [
         row({ kind: 'EXPECTED', invoiceAmountEur: '', deliveryNoteNo: 'E-1' }),
-        row({ kind: 'DELIVERED', invoiceAmountEur: '  ', deliveryNoteNo: 'D-1' }),
+        row({
+          kind: 'DELIVERED',
+          invoiceAmountEur: '  ',
+          deliveryNoteNo: 'D-1',
+        }),
       ],
       items,
     );
@@ -125,7 +138,13 @@ describe('validateDeliveryRows', () => {
 
   it('should trim fields and accept kind in any case', () => {
     const { valid } = validateDeliveryRows(
-      [row({ kind: ' delivered ', itemCode: ' MAT-CON-001 ', deliveryNoteNo: ' LS-9 ' })],
+      [
+        row({
+          kind: ' delivered ',
+          itemCode: ' MAT-CON-001 ',
+          deliveryNoteNo: ' LS-9 ',
+        }),
+      ],
       items,
     );
     expect(valid[0]).toMatchObject({
@@ -156,7 +175,8 @@ describe('validateDeliveryRows', () => {
   });
 
   it('should report a non-string or missing value as a row error instead of throwing', () => {
-    const { itemCode: _omit, ...missing } = row({ deliveryNoteNo: 'M-1' });
+    const missing = row({ deliveryNoteNo: 'M-1' });
+    delete missing.itemCode;
     const { errors } = validateDeliveryRows(
       [row({ quantity: 5 }), missing],
       items,

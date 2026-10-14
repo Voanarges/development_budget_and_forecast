@@ -7,7 +7,10 @@ import {
   type ImportRowError,
   type ItemKind,
 } from '@default-project/types';
-import { parseEurToCents, parseQtyToMilli } from '@default-project/budget-engine';
+import {
+  parseEurToCents,
+  parseQtyToMilli,
+} from '@default-project/budget-engine';
 
 /** A project item as the validator needs it, looked up by its trimmed `code`. */
 export interface ItemRef {
@@ -38,11 +41,12 @@ const AMOUNT = /^\d+(\.\d{1,2})?$/;
 // Cells a spreadsheet would execute as a formula (CSV injection).
 const FORMULA_START = /^[=+\-@\t\r]/;
 
-const normaliseKey = (key: string) => key.replace(/^﻿/, '').trim();
+const normaliseKey = (key: string) => key.replace(/^\uFEFF/, '').trim();
 
 function normaliseRow(raw: RawRow): Map<string, unknown> {
   const out = new Map<string, unknown>();
-  for (const [key, value] of Object.entries(raw)) out.set(normaliseKey(key), value);
+  for (const [key, value] of Object.entries(raw))
+    out.set(normaliseKey(key), value);
   return out;
 }
 
@@ -58,10 +62,25 @@ export function headerError(rows: RawRow[]): string | null {
   return `Wrong headers: missing ${missing.join(', ')}. Expected ${DELIVERY_CSV_COLUMNS.join(',')}`;
 }
 
-function checkText(value: string, field: Column, errs: ImportRowError[], row: number): void {
+function checkText(
+  value: string,
+  field: Column,
+  errs: ImportRowError[],
+  row: number,
+): void {
   if (!value) errs.push({ row, field, message: 'is required' });
-  else if (value.length > MAX_TEXT) errs.push({ row, field, message: `must be at most ${MAX_TEXT} characters` });
-  else if (FORMULA_START.test(value)) errs.push({ row, field, message: 'must not start with = + - @ or a control character' });
+  else if (value.length > MAX_TEXT)
+    errs.push({
+      row,
+      field,
+      message: `must be at most ${MAX_TEXT} characters`,
+    });
+  else if (FORMULA_START.test(value))
+    errs.push({
+      row,
+      field,
+      message: 'must not start with = + - @ or a control character',
+    });
 }
 
 function parseScaled(
@@ -113,34 +132,73 @@ export function validateDeliveryRows(
 
     const item = itemsByCode.get(text.itemCode);
     if (text.itemCode && !errs.some((e) => e.field === 'itemCode')) {
-      if (!item) errs.push({ row, field: 'itemCode', message: `Unknown item code ${text.itemCode}` });
+      if (!item)
+        errs.push({
+          row,
+          field: 'itemCode',
+          message: `Unknown item code ${text.itemCode}`,
+        });
       else if (item.kind !== 'MATERIAL')
-        errs.push({ row, field: 'itemCode', message: `${text.itemCode} is not a material item` });
+        errs.push({
+          row,
+          field: 'itemCode',
+          message: `${text.itemCode} is not a material item`,
+        });
     }
 
     const kind = text.kind.toUpperCase();
     if (!(DELIVERY_KINDS as readonly string[]).includes(kind))
-      errs.push({ row, field: 'kind', message: 'must be EXPECTED or DELIVERED' });
+      errs.push({
+        row,
+        field: 'kind',
+        message: 'must be EXPECTED or DELIVERED',
+      });
 
     if (!isIsoDate(text.date))
-      errs.push({ row, field: 'date', message: 'must be a real date in YYYY-MM-DD format' });
+      errs.push({
+        row,
+        field: 'date',
+        message: 'must be a real date in YYYY-MM-DD format',
+      });
 
     const qtyMilli = parseScaled(text.quantity, QTY, parseQtyToMilli);
     if (qtyMilli === null || qtyMilli === 0)
-      errs.push({ row, field: 'quantity', message: 'must be a positive number with a dot and at most 3 decimals' });
+      errs.push({
+        row,
+        field: 'quantity',
+        message: 'must be a positive number with a dot and at most 3 decimals',
+      });
 
     let invoiceCents: number | null = null;
     if (text.invoiceAmountEur) {
-      invoiceCents = parseScaled(text.invoiceAmountEur, AMOUNT, parseEurToCents);
+      invoiceCents = parseScaled(
+        text.invoiceAmountEur,
+        AMOUNT,
+        parseEurToCents,
+      );
       if (invoiceCents === null)
-        errs.push({ row, field: 'invoiceAmountEur', message: 'must be an amount with a dot and at most 2 decimals, e.g. 1234.50' });
+        errs.push({
+          row,
+          field: 'invoiceAmountEur',
+          message:
+            'must be an amount with a dot and at most 2 decimals, e.g. 1234.50',
+        });
     } else if (kind === 'DELIVERED') {
-      errs.push({ row, field: 'invoiceAmountEur', message: 'is required for DELIVERED rows' });
+      errs.push({
+        row,
+        field: 'invoiceAmountEur',
+        message: 'is required for DELIVERED rows',
+      });
     }
 
     const key = `${text.itemCode}\u0000${text.deliveryNoteNo}`;
     if (text.itemCode && text.deliveryNoteNo) {
-      if (seen.has(key)) errs.push({ row, field: 'deliveryNoteNo', message: 'duplicate deliveryNoteNo' });
+      if (seen.has(key))
+        errs.push({
+          row,
+          field: 'deliveryNoteNo',
+          message: 'duplicate deliveryNoteNo',
+        });
       seen.add(key);
     }
 
