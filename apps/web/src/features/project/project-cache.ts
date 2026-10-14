@@ -153,3 +153,11 @@ export function overlayUnconfirmed(
   }
   return out;
 }
+
+/** Patches several rows in one pass (e.g. a BOQ quantity that drives every linked item). */
+export function applyItemsPatch(
+  cache: ProjectCache,
+  patches: Array<{ id: string; patch: Patch<CostItem> }>,
+): ProjectCache {
+  return patches.reduce((c, { id, patch }) => applyItemPatch(c, id, patch), cache);
+}

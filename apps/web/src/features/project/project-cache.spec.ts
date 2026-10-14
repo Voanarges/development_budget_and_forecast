@@ -1,6 +1,7 @@
 import { makeItem, makeLine, makeOrg, makeSnapshot } from '@default-project/budget-engine';
 import {
   applyItemPatch,
+  applyItemsPatch,
   applyLinePatch,
   applyOrgPatch,
   applyProjectPatch,
@@ -107,5 +108,22 @@ describe('project-cache', () => {
     expect(next.itemsById['a'].qtyMilli).toBe(7000);
     expect(next.linesById['l2'].approvedCents).toBe(100);
     expect(next.project.markupBps).toBe(1000);
+  });
+});
+
+describe('applyItemsPatch', () => {
+  it('should patch several rows at once and keep the rest of the cache', () => {
+    const cache = fixture();
+
+    const next = applyItemsPatch(cache, [
+      { id: 'a', patch: { qtyMilli: 11 } },
+      { id: 'b', patch: { qtyMilli: 22 } },
+      { id: 'missing', patch: { qtyMilli: 33 } },
+    ]);
+
+    expect(next.itemsById['a'].qtyMilli).toBe(11);
+    expect(next.itemsById['b'].qtyMilli).toBe(22);
+    expect(next.itemsById['w']).toBe(cache.itemsById['w']);
+    expect(next.itemIdsByLineId).toBe(cache.itemIdsByLineId);
   });
 });
