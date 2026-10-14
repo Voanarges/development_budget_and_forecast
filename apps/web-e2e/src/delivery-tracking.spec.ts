@@ -62,8 +62,15 @@ test('should show row errors for an invalid file and update Materials for a vali
   await expect(page).toHaveURL(
     new RegExp(`/projects/${projectId}/materials/windows-doors`),
   );
+  // React Router commits the new route in a transition: the URL changes before the Delivery page
+  // leaves the DOM, so wait for the Materials section and look for the row only inside it.
+  const windowsDoors = page.getByRole('region', {
+    name: 'Windows, doors & stairs',
+    exact: true,
+  });
+  await expect(windowsDoors).toBeVisible();
   await expect(
-    page.getByRole('row').filter({ hasText: 'MAT-WIN-002' }),
+    windowsDoors.getByRole('row').filter({ hasText: 'MAT-WIN-002' }),
   ).toContainText('Delivered');
 });
 
