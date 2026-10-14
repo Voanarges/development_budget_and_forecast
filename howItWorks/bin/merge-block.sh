@@ -35,7 +35,10 @@ for attempt in 1 2 3 4 5; do
     release git; log "main moved during checks: repeating (attempt $attempt)"; continue
   fi
   DIRTY=$(git -C "$MAIN" status --porcelain -- . ':(exclude)howItWorks')
-  if [ -n "$DIRTY" ]; then release git; die "main tree has uncommitted changes outside howItWorks/: $DIRTY"; fi
+  if [ -n "$DIRTY" ]; then
+    release git; set_status "$ID" main-dirty "$(echo "$DIRTY" | awk '{print $NF}' | tr '\n' ' ')"
+    die "main tree has uncommitted changes outside howItWorks/: $DIRTY"
+  fi
   if ! git -C "$MAIN" merge --no-ff "$BRANCH" -m "merge: $SLUG" -m "Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"; then
     git -C "$MAIN" merge --abort 2>/dev/null; release git; die "merge into main failed unexpectedly"
   fi
