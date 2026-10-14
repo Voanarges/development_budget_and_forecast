@@ -18,7 +18,7 @@
 - Run e2e only via `bash howItWorks/bin/e2e.sh` (machine-wide `e2e` lock, JSON report, `ac-ledger.sh --e2e-report`). The specs come from the blocks.
 - Write `apps/web-e2e/src/cfo-journey.spec.ts`: the scenario from SUMMARY §3 (steps 1–6) as one journey test **on a copy of the demo** (`POST /api/projects/:id/duplicate`).
 - Ports: dev `serve` web 4274 / api 3454; e2e uses `web:preview` on **4300** + api 3454 (stop your own `serve` api before e2e, or keep it: `reuseExistingServer` reuses the api).
-- `/e2e-full`, `/review-full` before shipping.
+- `/e2e-full`, then `/explore-app` (browser walkthrough through the Playwright MCP; the app runs via `bin/app.sh`), then `/review-full` before shipping.
 
 ## Step 5: finish (when the time is up or W1 is done)
 - **SOLUTION.md** (TASK.md requires it). Cover: what was done; assumptions (net prices, markup on the whole approved budget, partial CSV import, Int cent limit, last write wins, Kairon stack instead of Next.js/Postgres); decisions (engine, snapshot, worktrees); what was left out (W2/W3 if unfinished, auth, VAT toggle); limitations; the next day.

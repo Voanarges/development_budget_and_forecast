@@ -17,4 +17,4 @@ Flags (milestones, `bin/flag.sh <flag>`):
 | `w0-frozen` | `merge-block.sh 02` (+ the git tag) | 03 (merge), 04–11, 13 (start) |
 | `main.broken` | integrator, if main is red | every merge waits |
 
-`CONTRACT_VERSION: 1`. Applied CRs are listed in `shared/change-requests/README.md`.
+`CONTRACT_VERSION: 2`. Applied CRs are listed in `shared/change-requests/README.md`.
