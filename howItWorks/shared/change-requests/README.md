@@ -16,4 +16,5 @@ File name: `CR-<block>-<slug>.md`, for example `CR-08-room-rotation.md`. The int
 Applied:
 - CR-00-contingency-line: the `contingency` section is added to CONSTRUCTION (CONTRACTS §4). Already in contract v1.
 - CR-12-wizard-template-route: `GET /projects/wizard/template` (block 12), scaling rule, block-private query keys. Docs only (CONTRACTS §5, §6).
-- CR-11-portfolio-extension, CR-05-add-days: accepted, pending the first block-00 merge after `w0-frozen`.
+- CR-11-portfolio-extension: optional portfolio fields, `?today=`, summed profitability, `DEMO_TODAY` in `.env.example` (main 1e0fe11, CONTRACT_VERSION 2).
+- CR-05-add-days: `addDays(isoDate, n)` in `budget-engine` schedule.ts (main 1e0fe11).

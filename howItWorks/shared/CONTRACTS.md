@@ -1,7 +1,7 @@
 # CONTRACTS — single source of truth (frozen at the `w0-frozen` tag)
 
 Block 01 transcribes §1–§6 into code (schema, zod, engine, API). Block 02 implements §6–§7 on the web side.
-Any divergence is a CR (PROTOCOL §4). `CONTRACT_VERSION = 1` (a constant in `libs/shared/types/src/lib/version.ts`).
+Any divergence is a CR (PROTOCOL §4). `CONTRACT_VERSION = 2` (a constant in `libs/shared/types/src/lib/version.ts`).
 
 ---
 
@@ -16,7 +16,7 @@ Any divergence is a CR (PROTOCOL §4). `CONTRACT_VERSION = 1` (a constant in `li
 | Geometry (drawing) | `Int`, **centimetres** | 10.40 m → `1040` |
 | Plot area | `Int`, m² | `540` |
 | Timestamps | Prisma `DateTime` (`createdAt`, `updatedAt` only) | |
-| Ids | `String @id @default(cuid())` + stable `slug`/`code` for idempotent seeding | |
+| Ids | `String @id @default(cuid())` + stable `slug`/`code` for idempotent seeding. Duplicated rows get `randomUUID()` ids, so zod id schemas are `z.string().min(1)` (as-built 01) | |
 
 - Limit: every money and quantity field in a DTO is `@IsInt() @Min(0) @Max(2_000_000_000)` (Prisma `Int` is 32-bit). This is documented in SOLUTION.md.
 - Formatting: `formatEur(cents)` → `€1,234.56` (`Intl.NumberFormat('en-IE', {style:'currency',currency:'EUR'})`). Parsing user input `parseEurToCents("1,234.56")` works **on strings, never via float**. Same for `formatQty`/`parseQtyToMilli`.
@@ -323,17 +323,17 @@ Response = zod type from `@default-project/types`. Errors are Nest HTTP exceptio
 | `GET /projects/:id` | → `ProjectSnapshot` | 01 |
 | `POST /projects` | `CreateProjectDto` (empty project + default lines from §4 with 0 approved) → `ProjectSnapshot` | 01 |
 | `PATCH /projects/:id` | `UpdateProjectDto` (name, clientName, city, status, startDate, endDate, markupBps) → `Project` | 01 |
-| `POST /projects/:id/budget-lines`, `PATCH|DELETE /projects/:id/budget-lines/:lineId` | → `BudgetLine` | 01 |
+| `POST /projects/:id/budget-lines`, `PATCH|DELETE /projects/:id/budget-lines/:lineId` | → `BudgetLine`. DELETE of a line that still has items → **409** (owner decision, as-built 01) | 01 |
 | `POST /projects/:id/items`, `PATCH|DELETE /projects/:id/items/:itemId` | `CreateCostItemDto` / `UpdateCostItemDto` (partial) → `CostItem` | 01 |
 | `GET /organizations`, `POST /organizations`, `PATCH /organizations/:id` | → `Organization` | 01 |
 | `PATCH /projects/:id/land`, `PATCH /projects/:id/land/utilities/:type` | → `LandParcel` / `UtilityConnection` (upsert by type) | 07 |
 | `PATCH /projects/:id/plan`; `POST|PATCH|DELETE /projects/:id/plan/rooms[/:roomId]`; `POST|PATCH|DELETE /projects/:id/plan/components[/:componentId]` | changing a component's `qtyMilli` **in the same transaction** updates `qtyMilli` of every linked CostItem (`boqComponentId`) | 08 |
 | `GET /projects/:id/deliveries`; `POST /projects/:id/deliveries/import` `{fileName, rows: DeliveryImportRow[]}` → `ImportResult` | 10 |
-| `GET /analytics/portfolio` → `PortfolioAnalytics` = `{ totals: Summary; profitability: Profitability /* over the sum */; projects: Array<{projectId; slug; name; city; status; summary: Summary; profitability: Profitability; byCategory: Record<CostCategory, Summary>}>; byCategory: Record<CostCategory, Summary>; cashflow: Array<{month; planned; actual; forecast; cumulativePlanned; cumulativeActual; cumulativeForecast}> }` | 11 |
+| `GET /analytics/portfolio?today=YYYY-MM-DD` (optional; fallback env `DEMO_TODAY`, then `2026-10-14`, CR-11) → `PortfolioAnalytics` = `{ totals: Summary; profitability: Profitability /* sum of per-project fields; marginBps = toBps(Σ forecastProfit, Σ contractPrice), CR-11 */; projects: Array<{projectId; slug; name; city; status; summary: Summary; profitability: Profitability; byCategory: Record<CostCategory, Summary>; /* CR-11, optional: */ startDate?; endDate?; overrunLineCount?; cashflow?: CashflowMonth[]; delivery?: {deliveredRows; onTimeRows; overdueItems}}>; byCategory: Record<CostCategory, Summary>; cashflow: Array<{month; planned; actual; forecast; cumulativePlanned; cumulativeActual; cumulativeForecast}> }` | 11 |
 | `POST /projects/wizard` `WizardInput` → `ProjectSnapshot` (clones the template, scales quantities by area: only continuous units `m3 m2 m t kg h` of MATERIALS/CONSTRUCTION rows and BOQ, counted units stay (CR-12), applies the step overrides) | 12 |
 | `GET /projects/wizard/template` → `ProjectSnapshot` of `template-efh-144` (404 when the seed has not run). Two segments after `/projects`, so no clash with `GET /projects/:id` (CR-12) | 12 |
 
-`WizardInput` = `{ name; clientName; city; startDate; markupBps; land: { address; postalCode; municipality; state; areaM2; landValuePerM2Cents; grzBps; gfzBps; maxStoreys; soilClass; groundwaterDepthCm?; utilities: Array<{type: UtilityType; status: UtilityStatus}> }; house: { livingAreaM2; storeys: 1|2; energyStandard: 'EH55'|'EH40'; heating: 'HEAT_PUMP'|'GAS_HYBRID'; wallType: 'SAND_LIME_ETICS'|'MONOLITHIC_BRICK' }; approvedByCategory: Record<CostCategory, cents> }`.
+`WizardInput` = `{ name; clientName; city; startDate; markupBps; land: { address; postalCode; municipality; state; areaM2; landValuePerM2Cents; grzBps; gfzBps; maxStoreys; soilClass; groundwaterDepthCm?; utilities: Array<{type: UtilityType; status: UtilityStatus}> }; house: { livingAreaM2; storeys: 1|2; energyStandard: 'EH55'|'EH40'; heating: 'HEAT_PUMP'|'GAS_HYBRID'; wallType: 'SAND_LIME_ETICS'|'MONOLITHIC_BRICK' }; approvedByCategory?: Record<CostCategory, cents> }` (**optional**, as-built 01: omitted → the template's approved amounts). `ProjectWizardModule` is registered before `ProjectsModule`, so the `/projects/wizard/*` routes win over `/projects/:id`.
 | `GET /search?q=` → `SearchResult[]` (`{type: project|item|organization|line; id; projectId?; title; subtitle; href}`) | 13 |
 | `GET /health` (exists) | | — |
 
@@ -410,4 +410,4 @@ Route ↔ component table (`routes.tsx`):
 ## 8. Dependencies (installed by block 01 only, exact versions)
 
 `npm i -E recharts@3.10.1 react-is@19.3.0 lucide-react@1.57.0 papaparse@5.7.0 && npm i -DE @types/papaparse@5.5.2`
-Tailwind 4.2.4 and `@tailwindcss/vite` are already in package.json (block 02 wires them up). Seed runner: `ts-node` (already installed) or `node --experimental-strip-types`. Block 01 picks one and writes `migrations.seed` in `prisma.config.ts`.
+Tailwind 4.2.4 and `@tailwindcss/vite` are already in package.json (block 02 wires them up). Seed runner (as-built 01): `ts-node -P tsconfig.app.json -r ./prisma/register-paths.cjs prisma/seed.ts` in `prisma.config.ts` → `migrations.seed`; it resolves `@default-project/*`. Types also export the input schemas for 07/08/10 and the zod `Summary`/`Profitability`/`CashflowMonth` (see 01 HANDOFF).
