@@ -30,9 +30,9 @@ test('should recalculate contract price, profit and margin when the markup goes 
   const price = page.getByTestId('hero-contract-price');
   const profit = page.getByTestId('hero-forecast-profit');
   const margin = page.getByTestId('hero-margin');
-  const priceBefore = (await price.textContent()) ?? '';
-  const profitBefore = (await profit.textContent()) ?? '';
-  const marginBefore = (await margin.textContent()) ?? '';
+  const priceBefore = await price.innerText();
+  const profitBefore = await profit.innerText();
+  const marginBefore = await margin.innerText();
 
   const saved = page.waitForResponse(
     (r) =>
@@ -46,7 +46,7 @@ test('should recalculate contract price, profit and margin when the markup goes 
   await expect(profit).not.toHaveText(profitBefore);
   await expect(margin).not.toHaveText(marginBefore);
   await saved;
-  const priceAfter = (await price.textContent()) ?? '';
+  const priceAfter = await price.innerText();
 
   await page.reload();
   await expect(page.getByLabel('Company markup %')).toHaveValue('12.0');
@@ -59,7 +59,7 @@ test('should change the Profitability forecast after a quantity edit on Building
   await page.goto(`/projects/${projectId}/profitability`);
   const forecast = page.getByTestId('hero-forecast');
   await expect(forecast).toBeVisible();
-  const forecastBefore = (await forecast.textContent()) ?? '';
+  const forecastBefore = await forecast.innerText();
 
   await page.goto(`/projects/${projectId}/materials/electrical`);
   const cable = page
