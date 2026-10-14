@@ -49,7 +49,7 @@ test('should clear the late-windows alert after the delivery moves earlier in Ma
   await input.blur().catch(() => undefined);
   expect((await saved).ok()).toBe(true);
 
-  await page.getByRole('link', { name: 'Construction' }).click();
+  await page.getByRole('tab', { name: 'Construction' }).click();
   await expect(
     page.getByRole('row').filter({ hasText: 'WRK-WIN-001' }),
   ).toContainText('Ready');

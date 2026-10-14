@@ -46,7 +46,7 @@ test('should recalculate contract price, profit and margin when the markup goes 
   await expect(profit).not.toHaveText(profitBefore);
   await expect(margin).not.toHaveText(marginBefore);
   await saved;
-  const priceAfter = await price.innerText();
+  const priceAfter = (await price.textContent()) ?? ''; // textContent: what toHaveText compares (innerText is CSS-uppercased)
 
   await page.reload();
   await expect(page.getByLabel('Company markup %')).toHaveValue('12.0');
@@ -78,7 +78,7 @@ test('should change the Profitability forecast after a quantity edit on Building
   await page.keyboard.press('Enter');
   await saved;
 
-  await page.getByRole('link', { name: 'Profitability' }).click();
+  await page.getByRole('tab', { name: 'Profitability' }).click();
   await expect(page.getByTestId('hero-forecast')).toBeVisible();
   await expect(page.getByTestId('hero-forecast')).not.toHaveText(
     forecastBefore,

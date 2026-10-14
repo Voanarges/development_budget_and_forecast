@@ -98,7 +98,7 @@ test('should answer the CFO questions live across tabs and keep edits after a re
     await date.press('Enter');
     await saved;
 
-    await page.getByRole('link', { name: 'Construction' }).click();
+    await page.getByRole('tab', { name: 'Construction' }).click();
     await expect(page.getByRole('row').filter({ hasText: 'WRK-WIN-001' })).toContainText('Ready');
     await expect(page.getByText(/MAT-WIN-001\) arrive/)).toHaveCount(0);
   });
@@ -140,7 +140,7 @@ test('should answer the CFO questions live across tabs and keep edits after a re
     await expect.poll(async () => eurToCents(await price.innerText())).toBeLessThan(priceBefore);
     await expect.poll(async () => eurToCents(await profit.innerText())).toBeLessThan(profitBefore);
     await saved;
-    const priceAfter = await price.innerText();
+    const priceAfter = (await price.textContent()) ?? ''; // textContent: what toHaveText compares (innerText is CSS-uppercased)
 
     await page.reload();
     await expect(page.getByLabel('Company markup %')).toHaveValue('12.0');
