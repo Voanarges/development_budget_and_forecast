@@ -67,7 +67,7 @@ Nx monorepo for live-coding sessions. Keep answers short, show commands and thei
 - Flow for a task: `/create-task` → `/brainstorm` → code with tests → `/test-task` → `/update-doc` → `/done-check`; a red test → `/fix-test`; before shipping `/e2e-full`, `/review-full`, then the user runs `/mr`.
 - Testing agents (spawned by the skills above, at most one test-running agent per session): `test-automator` (tagged guard test + red-proof), `regression-scout` (diff → ACs to re-run, read-only), `exploratory-qa-tester` (main tree, once before shipping).
 - Owner-only (never invoke them yourself): `/mr`, `/checkout`, `/report-tasks`, `/mode-process`, `/mode-fast`.
-- Artifacts: `docs/tasks/` (task statements), `docs/specs/` (designs), acceptance criteria `- AC-NN.M` in `howItWorks/NN-*/BLOCK.md`, tests tagged `[AC-NN.M]`, `docs/architecture/` (as-built docs, index in its README).
+- Artifacts: `docs/tasks/` (task statements), `docs/specs/` (designs), acceptance criteria `- AC-NN.M` in `howItWorks/NN-*/BLOCK.md`, tests tagged `[AC-NN.M]`, `docs/test-runs/` (e2e run records + `ledger-baseline.txt` regression ratchet, written by `e2e.sh`), `docs/architecture/` (as-built docs, index in its README).
 
 ## Global skills available here
 `core-debug` (root-cause debugging), `core-explain` (plain-language explanation), `core-writing-skill` (writing new skills) come from the user-level setup and work in this project too.

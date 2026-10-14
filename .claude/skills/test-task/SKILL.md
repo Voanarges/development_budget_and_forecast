@@ -42,7 +42,10 @@ from a worktree copy.
    - Main tree: `bash howItWorks/bin/e2e.sh --grep "<AC ids>"`. It takes the lock and checks the JSON report against the ledger.
 6. **Triage.** A failure before any assertion (port busy, server down, browser missing) is infrastructure: fix it and
    rerun once. A failure on an assertion or a UI-element timeout is a regression: stop and use `/fix-test`.
-7. **Report.** Show a table `AC | test file:line | red? | green?` and the ledger rows
+7. **Store the red-proof.** Append to `$MAIN/howItWorks/NN-*/HANDOFF.md` (absolute path, main tree), section
+   `## Red-proof`: one line per AC — `AC-NN.M · spec file · red: <failing assertion / compile error> · green: <command>, exit 0`.
+   Run results live in `docs/test-runs/` (see its README); the ratchet there fails any AC that was proven once.
+8. **Report.** Show a table `AC | test file:line | red? | green?` and the ledger rows
    (`bash "$MAIN/howItWorks/bin/ac-ledger.sh" --block NN`). Include the commands with their exit codes and what is
    NOT covered (`manual`). Then run `/done-check`.
 

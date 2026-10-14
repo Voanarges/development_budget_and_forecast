@@ -13,12 +13,16 @@ Refuse to run in a worktree. Check that `git rev-parse --show-toplevel` is `/Use
 3. **e2e and the ledger.** `bash howItWorks/bin/e2e.sh`:
    - It waits for the e2e lock and runs Playwright with list and JSON reporters (`/tmp/kairon-e2e/report.json`).
    - It then runs `ac-ledger.sh --e2e-report`. An e2e AC is OK only if it passed in the report.
+   - It writes `docs/test-runs/<stamp>-e2e.md`, grows `ledger-baseline.txt` after a green full run, and commits both
+     at once (`test(run): …`), so the main tree stays clean for merges.
 4. **Read the ledger.**
    - `OK`: guarded.
    - `UNCOVERED`/`SKIPPED` in a merged block: a guard was lost.
    - `FAILED`/`UNRUN`: the e2e test failed or did not run.
    - `ORPHAN`: a tag with no registry line.
    - `DUPLICATE`: the same id twice in the registry.
+   - `REGRESSED`: proven OK in an earlier run (`docs/test-runs/ledger-baseline.txt`), not OK now. Always a blocker;
+     never delete the baseline line to get green.
    - `MANUAL`: checked by command or by hand. Run the command named in the AC (AC-00.1, 00.3, 00.4, 01.11, 03.5)
      and record its exit code.
 5. **Triage failures.**
@@ -33,7 +37,7 @@ Refuse to run in a worktree. Check that `git rev-parse --show-toplevel` is `/Use
    uses `e2e.sh --exec`, so it waits for the same lock.
 8. **Report.**
    - A table `target | PASS/FAIL/SKIP | reason`.
-   - The ledger `SUMMARY`, with the rows that are not OK or MANUAL.
+   - The ledger `SUMMARY`, with the rows that are not OK or MANUAL, and the path of the run record in `docs/test-runs/`.
    - Any test touched, and why.
 
    Green requires zero FAIL, and zero UNCOVERED/SKIPPED/FAILED/UNRUN in merged blocks.

@@ -69,6 +69,25 @@ Inconsistencies in the current kit that A fixes:
   Otherwise exit 0. Stretch blocks that are not merged never fail the check.
 - Bash 3.2. `--self-test` runs the fixture suite.
 
+## Addendum (2026-10-14, owner: "where are test results stored, so there is no regression?")
+
+The first version had no persistent results: the e2e JSON lived in `/tmp` and ledger output only in the console, so
+"proven once" could silently become "not covered" again. Added (owner chose storage in git, since the history is part
+of the result):
+- `docs/test-runs/<stamp>-e2e.md`: one record per `e2e.sh` run (verdict, commit, scope, exit codes, ledger rows that
+  are not OK/MANUAL, e2e tests that did not pass), committed at once by `e2e.sh` via `main-commit.sh`. The main tree
+  must stay clean outside `howItWorks/`, otherwise `merge-block.sh` stops with `main-dirty`.
+- `docs/test-runs/ledger-baseline.txt`: the regression ratchet. A union of ACs proven OK, grown only after a green
+  FULL run. `ac-ledger.sh` reads it by default and reports `REGRESSED` (exit 1, any block, merged or not) when one
+  is no longer OK. e2e ids are judged only when a report is given; `--block` limits it to that block; ids removed
+  from BLOCK.md show as `RETIRED` (info).
+- Red-proof per AC: the block's `howItWorks/NN-*/HANDOFF.md`, section `## Red-proof`. Blocks can't write to `docs/`,
+  because `check.sh` enforces file ownership.
+- `howItWorks/bin/pw-report.js`: shared Playwright JSON parser (ledger + run record).
+- Tooling ACs: AC-11 ledger baseline tests R8–R12 pass, and a mutant that ignores REGRESSED fails 3 of them;
+  AC-12 `e2e.test.sh` run-record cases pass (green record + baseline + commit, red record keeps the baseline,
+  `--grep` partial, `KAIRON_E2E_NO_COMMIT`).
+
 ## Judge constraints (binding)
 
 1. The only tag format is `[AC-NN.M]` in `it`/`test`/`describe` titles. Every mention of `AC:<slug>/<n>` and `docs/acceptance` is removed.

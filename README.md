@@ -25,6 +25,7 @@ Stack, versions and coding rules: `.claude/CLAUDE.md`.
 | `docs/tasks/` | task statements with acceptance criteria (`/create-task`) |
 | `docs/specs/` | design specs (`/brainstorm`) |
 | `howItWorks/NN-*/BLOCK.md` | acceptance registry: `- AC-NN.M` lines; tests carry `[AC-NN.M]` in their titles; `howItWorks/bin/ac-ledger.sh` reconciles them |
+| `docs/test-runs/` | test results in git: one record per e2e run and `ledger-baseline.txt`, the ACs proven once — `ac-ledger.sh` fails with REGRESSED if any of them breaks |
 | `docs/architecture/` | as-built architecture docs, index in its `README.md` (`/update-doc`) |
 
 ## Commands

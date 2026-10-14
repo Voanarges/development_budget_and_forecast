@@ -3,8 +3,13 @@
 # on the machine (mkdir lock "e2e" from lib.sh, held for the whole run), heavy-slot semaphore.
 # Usage: e2e.sh [--grep RE]      run Playwright (list + JSON report), then ac-ledger.sh --e2e-report
 #        e2e.sh --exec CMD...    run CMD under the same lock (exploratory scripts, a manual serve check)
-# Report: $KAIRON_E2E_REPORT (default /tmp/kairon-e2e/report.json). Exit: the worst of Playwright and ledger;
-# 2 = usage / not the main tree.
+# Report: $KAIRON_E2E_REPORT (default /tmp/kairon-e2e/report.json, raw, overwritten). Every run also leaves a record
+# docs/test-runs/<stamp>-e2e.md (verdict, commit, ledger rows that are not OK, failed tests) and, after a fully green
+# FULL run, grows docs/test-runs/ledger-baseline.txt (the regression ratchet read by ac-ledger.sh). Both are committed
+# at once via main-commit.sh so the main tree stays clean for merge-block.sh (KAIRON_E2E_NO_COMMIT=1 skips that).
+# A --grep run is partial: the ledger is informational and the baseline is not touched.
+# Exit: the worst of Playwright and ledger (ledger ignored for --grep); 2 = usage / not the main tree.
+# KAIRON_E2E_CMD replaces the Playwright command (tests only; it must write $PLAYWRIGHT_JSON_OUTPUT_NAME).
 . "$(dirname "$0")/lib.sh"
 
 GREP="" EXEC=""
@@ -27,18 +32,63 @@ log "e2e lock taken"
 if [ -n "$EXEC" ]; then "$@"; exit $?; fi
 
 REPORT="${KAIRON_E2E_REPORT:-/tmp/kairon-e2e/report.json}"
-mkdir -p "$(dirname "$REPORT")"; rm -f "$REPORT"
-set -- npx nx e2e web-e2e --outputStyle=static -- --reporter=list,json
-[ -n "$GREP" ] && set -- "$@" --grep "$GREP"
+RUNS="$MAIN/docs/test-runs"; BASE="$RUNS/ledger-baseline.txt"
+STAMP=$(date '+%Y-%m-%d-%H%M%S'); REC="$RUNS/$STAMP-e2e.md"
+mkdir -p "$(dirname "$REPORT")" "$RUNS"; rm -f "$REPORT"
+if [ -n "${KAIRON_E2E_CMD:-}" ]; then
+  set -- sh -c "$KAIRON_E2E_CMD"
+else
+  set -- npx nx e2e web-e2e --outputStyle=static -- --reporter=list,json
+  [ -n "$GREP" ] && set -- "$@" --grep "$GREP"
+fi
 PLAYWRIGHT_JSON_OUTPUT_NAME="$REPORT" "$BIN/heavy.sh" "$MAIN" "$@"
 PW=$?
 row() { printf '%-22s exit %s\n' "$1" "$2"; }
 row "playwright" $PW
 if [ -s "$REPORT" ]; then
-  bash "$BIN/ac-ledger.sh" --root "$MAIN" --e2e-report "$REPORT"; LG=$?
+  LEDGER=$(bash "$BIN/ac-ledger.sh" --root "$MAIN" --e2e-report "$REPORT"); LG=$?
+  FAILED=$(node "$BIN/pw-report.js" "$REPORT" | awk -F'\t' '$1 != "passed" { print "- " $1 ": " $2 }')
 else
-  echo "no JSON report at $REPORT (Playwright did not start: infrastructure)"; LG=1
+  LEDGER="no JSON report at $REPORT (Playwright did not start: infrastructure)"; LG=1; FAILED=""
 fi
+echo "$LEDGER" | grep -vE '^(OK|MANUAL) '
 row "ac-ledger --e2e-report" $LG
-[ $PW = 0 ] && [ $LG = 0 ] && { echo "E2E: PASS"; exit 0; }
-echo "E2E: FAIL"; exit 1
+
+if [ -n "$GREP" ]; then
+  SCOPE="partial run (--grep '$GREP'): the ledger is informational, the baseline is untouched"
+  [ $PW = 0 ] && VERDICT=PASS || VERDICT=FAIL
+else
+  SCOPE="full suite"
+  [ $PW = 0 ] && [ $LG = 0 ] && VERDICT=PASS || VERDICT=FAIL
+fi
+BASENOTE="unchanged (the run is not a green full run)"
+if [ -z "$GREP" ] && [ "$VERDICT" = PASS ]; then
+  bash "$BIN/ac-ledger.sh" --root "$MAIN" --e2e-report "$REPORT" --write-baseline "$BASE" >/dev/null
+  BASENOTE="grown to $(grep -c '^AC-' "$BASE") proven ACs"
+fi
+DIRTY=$(git status --porcelain -- . ':(exclude)docs/test-runs' | wc -l | tr -d ' ')
+{
+  echo "# e2e run $(date '+%Y-%m-%d %H:%M:%S') — $VERDICT"
+  echo
+  echo "- main: $(git rev-parse --short HEAD) (uncommitted files outside docs/test-runs: $DIRTY)"
+  echo "- scope: $SCOPE"
+  echo "- playwright exit $PW · ac-ledger exit $LG"
+  echo "- baseline: $BASENOTE"
+  echo
+  echo "## Ledger (rows that are not OK/MANUAL, then SUMMARY)"
+  echo
+  echo '```'
+  echo "$LEDGER" | grep -vE '^(OK|MANUAL) '
+  echo '```'
+  echo
+  echo "## e2e tests that did not pass"
+  echo
+  [ -n "$FAILED" ] && echo "$FAILED" || echo "none"
+} >"$REC"
+echo "record: ${REC#$MAIN/}"
+if [ -z "${KAIRON_E2E_NO_COMMIT:-}" ]; then
+  "$BIN/main-commit.sh" "test(run): e2e $STAMP $VERDICT" "$REC" "$BASE" >/dev/null 2>&1 \
+    || echo "WARNING: could not commit ${REC#$MAIN/}: commit it with bin/main-commit.sh (the main tree must stay clean for merges)"
+fi
+echo "E2E: $VERDICT"
+[ "$VERDICT" = PASS ]
