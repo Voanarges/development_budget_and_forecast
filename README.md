@@ -1,102 +1,114 @@
 # Development Budget & Cost Forecast (Kairon)
 
-A CFO tool for a German house builder: budget, actual spend, commitments, forecast (EAC) and overruns per project and across the portfolio, recalculated live. Nx monorepo: NestJS + Prisma (SQLite) API, React + Vite + Tailwind web app, a shared money engine, Playwright e2e. What was built and why: [SOLUTION.md](SOLUTION.md).
+A CFO tool for a German house builder. For each project and for the whole portfolio it shows the budget, the actual spend, the open commitments, the forecast final cost (EAC) and the cost lines that will go over budget. Every number is recalculated live on each edit, in every tab.
 
-## Quick start
+What was built, the assumptions and the limitations are in [SOLUTION.md](SOLUTION.md). The original task and the demo scenario are in [howItWorks/SUMMARY.md](howItWorks/SUMMARY.md).
 
-```sh
-npm ci
-cd apps/api && npx prisma migrate deploy && npx prisma db seed && cd ../..   # schema + demo data (idempotent)
-npm start                                       # api http://localhost:3454/api · web http://localhost:4274
-```
+## Install
 
-Open http://localhost:4274 → **Current projects** → "Stadtvilla Taucha — Family of 4" (the demo scenario is in `howItWorks/SUMMARY.md` §3).
-
-Checks:
+Requirements: Node 24 (tested on 24.16) and npm. Use `npm ci` only, because `package-lock.json` is committed.
 
 ```sh
-npx nx run-many -t lint test typecheck build
-bash howItWorks/bin/e2e.sh                      # Playwright (api 3454 + web preview 4300), main tree only
+npm ci                                          # also runs `prisma generate`
+cp apps/api/.env.example apps/api/.env          # DATABASE_URL (SQLite), PORT=3454, DEMO_TODAY=2026-10-14
+cd apps/api && npx prisma migrate deploy && npx prisma db seed && cd ../..
 ```
 
-Stack, versions and coding rules: `.claude/CLAUDE.md`.
+The seed is idempotent: you can run it again safely, and it never deletes rows.
 
-## Layout
+## Run
 
-| Path | What |
-|---|---|
-| `apps/api` | NestJS 11, Prisma 6 (SQLite), class-validator, Jest |
-| `apps/web` | React 19, Vite, React Router, TanStack Query, zustand, react-hook-form + zod, Vitest |
-| `apps/web-e2e` | Playwright (chromium) |
-| `libs/shared/types` | zod schemas and types, imported as `@default-project/types` |
-| `docs/tasks/` | task statements with acceptance criteria (`/create-task`) |
-| `docs/specs/` | design specs (`/brainstorm`) |
-| `howItWorks/NN-*/BLOCK.md` | acceptance registry: `- AC-NN.M` lines; tests carry `[AC-NN.M]` in their titles; `howItWorks/bin/ac-ledger.sh` reconciles them |
-| `docs/test-runs/` | test results in git: one record per e2e run and `ledger-baseline.txt`, the ACs proven once — `ac-ledger.sh` fails with REGRESSED if any of them breaks |
-| `docs/architecture/` | as-built architecture docs, index in its `README.md` (`/update-doc`) |
-
-## Commands
-
-Type them in Claude Code as `/name`. **Who** — whether Claude may start the command on its own or only you can.
-
-### Task cycle
-
-| Command | What it does | When | Who | Output |
-|---|---|---|---|---|
-| `/create-task` | Turns a raw statement (text, chat quotes, screenshots) into a task with goal, behaviour, atomic acceptance criteria and a how-to-verify path; subagents critique the draft; never writes code | a new task or bug arrives | you or Claude | `docs/tasks/<date>-<slug>.md` |
-| `/brainstorm` | Design before code: gathers context, asks one question at a time, proposes 2–3 approaches, runs a prosecutor / advocate / architect / tester panel and a judge, writes the spec, then starts implementing | the approach is not obvious | you or Claude | `docs/specs/<date>-<slug>-design.md` |
-| `/scaffold-feature` | Full vertical slice for a new entity: Prisma model and migration, NestJS module with DTOs and tests, shared zod schema, React page with a TanStack Query hook and a test | a new resource, CRUD, list or form | you or Claude | code + tests |
-| `/test` | Runs the narrowest relevant unit tests (Jest for api and libs, Vitest for web) | after changing code | you or Claude | exit codes |
-| `/test-task` | Proves the task by its `AC-NN.M` criteria: a tagged Jest / Vitest / Playwright test per AC, red without the fix and green with it, plus negative assertions (e2e specs are written in blocks, run in the main tree) | a feature or fix is implemented | you or Claude | tagged specs + ledger rows |
-| `/fix-test` | Repairs a red test without tuning it to green: infrastructure vs regression, 2–4 hypotheses, root cause, fix the product | a specific test fails | you or Claude | root cause + red→green |
-| `/update-doc` | Updates the one relevant architecture doc as-built; adds bug history; creates a new doc only for a real gap; refreshes the index | after a verified behaviour change | you or Claude | `docs/architecture/` |
-| `/done-check` | Definition of done by exit codes. Block worktree: `howItWorks/bin/check.sh NN` + `ac-ledger.sh --block NN`. Main tree: format, affected lint/test/typecheck, test-weakening check, AC ledger, e2e after merges | before saying "done" | you or Claude | table of exit codes |
-
-### Review and shipping
-
-| Command | What it does | When | Who | Output |
-|---|---|---|---|---|
-| `/self-review` | One-pass review of the diff against the stack checklist | quick check after tests are green | you or Claude | findings with file:line |
-| `/review-full` | Adversarial review: prosecutor and defender in parallel, a judge rules on each finding; APPROVE / REQUEST CHANGES / NEEDS DISCUSSION | before `/mr`, or a thorough review | you or Claude | verdict + blocking list |
-| `/e2e-full` | Full regression, main tree only: every lint / test / typecheck / build target, then e2e under the machine-wide lock (`howItWorks/bin/e2e.sh`) and the AC ledger against the JSON report — merged blocks must have no UNCOVERED / SKIPPED / FAILED ACs | after merges, before `/mr`, or "did anything old break?" | you or Claude | report + ledger SUMMARY |
-| `/explore-app` | Browser walkthrough of the finished app through the Playwright MCP `playwright-kairon`: starts it (`howItWorks/bin/app.sh`), drives the demo journey on a duplicated project at 3 viewports, checks console and network, runs one exploratory tester, commits a record | blocks merged, `/e2e-full` green | you or Claude | `docs/test-runs/<stamp>-explore.md` |
-| `/mr` | Scoped commits by file name → merge of main → checks → `/review-full` → completeness check → push (asks you) → PR with what / why / how to verify | work is finished | **you only** | commits, PR |
-| `/checkout <name>` | New branch from the freshest main, carrying unpushed commits and all uncommitted changes; the source branch is untouched | starting a new branch | **you only** | new branch |
-| `/report-tasks [date]` | The day's work across all sessions as "did X so that Y", git as the spine | end of day | **you only** | text in chat |
-
-### Session modes
-
-| Command | What it does |
-|---|---|
-| `/mode-process` | "Show the process": each prompt gets a checklist injected — restate, plan ≤ 5 steps, failing test first, `/done-check` before "done" |
-| `/mode-fast` | Back to the default fast mode. Every new session starts fast |
-
-Claude Code's built-in `/plan` gives a visible planning phase. `core-debug`, `core-explain` and `core-writing-skill` come from the user-level setup when it is present.
-
-### Typical flow
-
-```
-/create-task → /brainstorm → code + unit tests → /test-task → /update-doc → /done-check
-                                                             ↓
-                                   /e2e-full → /explore-app → /review-full → /mr
+```sh
+npm start                                       # api + web together
 ```
 
-A red test at any point → `/fix-test`. Testing agents in `.claude/agents/` (spawned by the skills, not called directly): `test-automator` (tagged guard test + red-proof), `regression-scout` (diff → ACs to re-run), `exploratory-qa-tester` (main tree, once before shipping).
+- Web: http://localhost:4274 (the dev server proxies `/api` to the API)
+- API: http://localhost:3454/api (health check: `/api/health`)
 
-## Guardrails (hooks)
+You can also run each app on its own with `npx nx serve api` and `npx nx serve web`. For a browser walkthrough there is a wrapper that takes the machine-wide port lock: `bash howItWorks/bin/app.sh up [--seed] | status | down`.
 
-| Hook | Event | What it does |
-|---|---|---|
-| `block-no-verify.sh` | before Bash | blocks `--no-verify` and `--no-gpg-sign` |
-| `guard-command-secrets.sh` | before Bash | blocks cloud keys and `user:token@host` in command text |
-| `commit-quality.sh` | before Bash | secret scan of the staged diff, blocks committing `.env` |
-| `console-log-check.sh` | after Write / Edit | reminds to use Nest `Logger` instead of `console.log` in `apps/api` |
-| `interview-mode.sh` | every prompt | injects the process checklist in process mode, silent otherwise |
-| `session-reset.sh` | session start | resets the mode to fast |
-| `interview-stop-check.sh` | end of turn | in process mode only: reminds to run lint / test / typecheck; never blocks |
+## How to use it
 
-Permissions (`.claude/settings.json`): Nx, npm, Prisma, Playwright, git, `gh` and `jq` run without prompts; `git push` always asks; reading `.env` and `~/.ssh`, and `rm -rf` are denied.
+Open **Projects → Current projects → "Stadtvilla Taucha — Family of 4"**. This is the seeded demo house near Leipzig. It has deliberate overruns and schedule conflicts.
 
-## Not included on purpose
+| Where                            | What you can do                                                                                                                                                                                                                                           |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Header KPI strip                 | Budget · Spent · Open commitments · Forecast (EAC) · Variance, plus "N lines over budget". It is shown on every page.                                                                                                                                     |
+| **Land** tab                     | Plot, municipality, soil and utilities with their costs, plus the site plan.                                                                                                                                                                              |
+| **Architecture** tab             | Floor plan on the plot, house sections and an editable takeoff (BOQ). Changing a BOQ quantity updates the linked cost rows.                                                                                                                               |
+| **Building materials** tab       | A sub-nav of sections with overrun and late badges. Editable tables for quantity, price, committed, actual, supplier, installer and dates. Click an organisation to open a modal with contacts and deadlines. The rightmost column flags late deliveries. |
+| **Construction** tab             | Works per section and a Gantt chart. An alert appears when materials arrive after the work starts (e.g. "Windows arrive … 9 days after installation start"). "Shift work start" keeps the duration.                                                       |
+| **Marketing** tab                | Marketing channels for a German homebuilder and a campaign calendar.                                                                                                                                                                                      |
+| **Profitability** tab            | Markup (default 15 %), contract price, profit, margin and charts.                                                                                                                                                                                         |
+| **Delivery tracking**            | Import deliveries from a CSV. Valid rows update actuals and dates. Bad rows are listed with their row number and the reason. Sample files: `apps/web-e2e/fixtures/deliveries-*.csv`.                                                                      |
+| **Analytics**                    | Portfolio KPIs and charts across all projects, filtered by year.                                                                                                                                                                                          |
+| **Projects → Calculate project** | A 5-step wizard that creates a full project from a template, scaled by living area.                                                                                                                                                                       |
+| **Search** (header)              | Finds projects, lines, items and organisations, ignoring case and umlauts (`warmepumpe` finds "Wärmepumpe"), and jumps to the matching row.                                                                                                               |
 
-Commands tied to a particular issue tracker, hosting, deploy pipeline, production data or personal tooling (change journal, video transcripts, cross-project sync, account hand-off) are left out. The commands above keep only the part that works the same in any Nx repo.
+Edits save automatically. Nothing is lost when you switch tabs, and a failed save rolls back with a toast.
+
+A short demo path: in Electrical, change the NYM-J cable quantity, then check the header and Profitability. In Construction → Windows & doors, move the delivery earlier and the alert disappears. In Profitability, change the markup from 15 % to 12 %.
+
+## How it works
+
+```
+apps/web (React 19, Vite, TanStack Query, Tailwind)
+   │  GET /api/projects/:id → one snapshot per project; edits = optimistic update + 400 ms save queue
+   ▼
+apps/api (NestJS 11, Prisma 6, SQLite)  ── REST: projects, lines, items, organisations, land,
+   │                                          architecture, deliveries, analytics, wizard, search
+   ▼
+libs/shared/budget-engine  ← pure money engine, used by BOTH api and web (identical numbers)
+libs/shared/types          ← zod schemas and types (`@default-project/types`)
+```
+
+- **Money** is stored as integer euro cents, quantities as integer milli-units and rates as basis points. Rounding is half-up and happens in exactly two places: row amount = qty × price, and the markup. All amounts are net, excluding VAT.
+- **The forecast (EAC) of a row depends on its status:**
+  - DONE = actual;
+  - CONTRACTED = max(actual, committed);
+  - PLANNED/PARTIAL = max(actual, committed + the uncontracted remainder).
+
+  A line is over budget only when its forecast is greater than the approved budget.
+
+- **Live recalculation.** Every tab and the header are computed from the same cached snapshot by the shared engine. One edit therefore updates everything without a refetch.
+- **"Today"** for schedules and analytics is fixed to `2026-10-14` (`DEMO_TODAY` in `.env`).
+
+Architecture docs per feature: [docs/architecture/README.md](docs/architecture/README.md).
+
+## Tests
+
+| Command                                              | What it checks                                                                                                                                                                                                                                                         |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npx nx run-many -t lint test typecheck build`       | Everything: lint, unit tests (Jest for the api and libs, Vitest for web), typecheck and build for api, web, web-e2e, types and budget-engine                                                                                                                           |
+| `npx nx affected -t lint test typecheck --base=HEAD` | Only the projects touched by uncommitted changes                                                                                                                                                                                                                       |
+| `npx nx test budget-engine` / `api` / `web`          | Unit tests of one project (the money logic lives in `budget-engine`)                                                                                                                                                                                                   |
+| `bash howItWorks/bin/e2e.sh`                         | The whole Playwright suite (chromium, 12 specs including the CFO journey `cfo-journey.spec.ts`). Starts api :3454 and a web preview :4300 itself, then checks the AC registry. Main tree only, one run at a time on the machine. Writes a record to `docs/test-runs/`. |
+| `bash howItWorks/bin/e2e.sh --grep "AC-04"`          | Only the matching e2e tests                                                                                                                                                                                                                                            |
+| `bash howItWorks/bin/ac-ledger.sh [--block NN]`      | Checks that each acceptance criterion `AC-NN.M` in `howItWorks/NN-*/BLOCK.md` has a tagged test that passes                                                                                                                                                            |
+
+Before running e2e, stop the app if `app.sh up` started it: `bash howItWorks/bin/app.sh down`. Both use the same ports.
+
+Last verified result (2026-10-14): run-many exit 0; e2e 20/20 passed; AC ledger OK=138, UNCOVERED=0, FAILED=0.
+
+## Repository layout
+
+| Path                        | What                                                                                                                                                   |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `apps/api`                  | NestJS API, Prisma schema, migrations and seed (`apps/api/prisma/`)                                                                                    |
+| `apps/web`                  | React app, one folder per feature in `src/features/`                                                                                                   |
+| `apps/web-e2e`              | Playwright specs and CSV fixtures                                                                                                                      |
+| `libs/shared/budget-engine` | The pure money and forecast engine                                                                                                                     |
+| `libs/shared/types`         | Shared zod contracts                                                                                                                                   |
+| `howItWorks/`               | How the work was split into 13 parallel blocks; each block's `BLOCK.md` holds its acceptance criteria, and `bin/` holds the run, e2e and merge scripts |
+| `docs/`                     | Task statements, design specs, architecture docs and e2e run records                                                                                   |
+| `.claude/`                  | Claude Code setup: coding rules (`CLAUDE.md`), skills, agents and hooks                                                                                |
+
+## Working with Claude Code
+
+The usual task flow is:
+
+```
+/create-task → /brainstorm → code + tests → /test-task → /update-doc → /done-check
+```
+
+Before shipping, run `/e2e-full`, `/explore-app` and `/review-full`. Then the owner runs `/mr`. A red test goes to `/fix-test`. Each skill is described in `.claude/skills/<name>/SKILL.md`. The stack rules are in `.claude/CLAUDE.md`.
