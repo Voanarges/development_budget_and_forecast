@@ -45,6 +45,7 @@ test('should show row errors for an invalid file and update Materials for a vali
 
   await page.goto(`/projects/${projectId}/materials/windows-doors`);
   const frontDoor = page.getByRole('row').filter({ hasText: 'MAT-WIN-002' });
+  await expect(frontDoor).toBeVisible();
   await expect(frontDoor).not.toContainText('Delivered');
 
   await page.goto(`/deliveries?project=${projectId}`);
