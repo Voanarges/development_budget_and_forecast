@@ -1,43 +1,58 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Search } from 'lucide-react';
+import { useIsMobile } from '../../lib/use-media-query';
 import { cx, FOCUS } from '../../ui/cx';
+import { Sheet } from '../../ui/modal';
+import { SearchCombobox } from './search-combobox';
 
-/** Header search input (placeholder from block 02): submits to /search?q=. ⌘K / Ctrl+K focuses it. */
+/** Header search: a combobox on tablet/desktop, an icon opening a Sheet on mobile. ⌘K / Ctrl+K opens it. */
 export function GlobalSearch() {
-  const navigate = useNavigate();
-  const [q, setQ] = useState('');
+  const isMobile = useIsMobile();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const closeSheet = useCallback(() => setSheetOpen(false), []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        inputRef.current?.focus();
+        if (isMobile) setSheetOpen(true);
+        else {
+          inputRef.current?.focus();
+          inputRef.current?.select();
+        }
       }
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, []);
+  }, [isMobile]);
 
-  const onSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    const term = q.trim();
-    if (term) navigate(`/search?q=${encodeURIComponent(term)}`);
-  };
+  // Modal focuses its panel when it opens (child effect); this parent effect runs after it.
+  useEffect(() => {
+    if (sheetOpen) inputRef.current?.focus();
+  }, [sheetOpen]);
 
+  if (!isMobile)
+    return <SearchCombobox inputRef={inputRef} variant="popover" />;
   return (
-    <form role="search" onSubmit={onSubmit} className="relative w-full max-w-md">
-      <Search aria-hidden className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted" />
-      <input
-        ref={inputRef}
-        type="search"
-        aria-label="Search"
-        placeholder="Search projects, items, suppliers…  ⌘K"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        className={cx('w-full rounded-lg border border-line bg-subtle py-1.5 pr-3 pl-9 text-sm placeholder:text-muted', FOCUS)}
-      />
-    </form>
+    <div className="flex w-full justify-end">
+      <button
+        type="button"
+        aria-label="Open search"
+        onClick={() => setSheetOpen(true)}
+        className={cx('rounded-lg p-1.5 text-ink hover:bg-subtle', FOCUS)}
+      >
+        <Search aria-hidden className="h-5 w-5" />
+      </button>
+      <Sheet open={sheetOpen} onClose={closeSheet} title="Search">
+        <div className="min-h-[60vh]">
+          <SearchCombobox
+            inputRef={inputRef}
+            variant="sheet"
+            onNavigate={closeSheet}
+          />
+        </div>
+      </Sheet>
+    </div>
   );
 }

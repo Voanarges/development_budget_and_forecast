@@ -17,6 +17,11 @@ export function daysBetween(from: string, to: string): number {
   return Math.round((utcDay(to) - utcDay(from)) / DAY_MS);
 }
 
+/** `YYYY-MM-DD` + `days` (may be negative), in UTC. Inverse of `daysBetween`. */
+export function addDays(isoDate: string, days: number): string {
+  return new Date(utcDay(isoDate) + days * DAY_MS).toISOString().slice(0, 10);
+}
+
 type ScheduleItem = Pick<
   EngineItem,
   | 'id'
