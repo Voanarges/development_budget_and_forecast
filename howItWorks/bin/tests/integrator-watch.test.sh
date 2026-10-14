@@ -25,6 +25,14 @@ once; is "AC-00.6 a fresh CR (<10 s) is ignored" $RC 3
 touch -t 202601010000 "$CRD/CR-04-x.md"
 once; is "AC-00.6 an aged CR is reported" $RC 0; has "AC-00.6 prints CR <file>" "$OUT" "CR CR-04-x.md"
 bash "$W" --ack >/dev/null; once; is "AC-00.6 acked CR is quiet" $RC 3
+echo cr2 > "$CRD/CR-05-y.md"; touch -t 202601010000 "$CRD/CR-05-y.md"
+once; has "AC-00.6 second CR reported" "$OUT" "CR CR-05-y.md"
+echo "- Status: accepted" >> "$CRD/CR-05-y.md"; touch -t 202601010100 "$CRD/CR-05-y.md"   # integrator edits it before acking
+echo cr3 > "$CRD/CR-06-z.md"; touch -t 202601010000 "$CRD/CR-06-z.md"                    # a new CR arrives before the ack
+bash "$W" --ack >/dev/null; once
+case "$OUT" in *CR-05-y*) is "AC-00.6 own edit of a reported CR is acked" reported quiet;; *) is "AC-00.6 own edit of a reported CR is acked" quiet quiet;; esac
+has "AC-00.6 a CR that arrived before the ack is still reported" "$OUT" "CR CR-06-z.md"
+bash "$W" --ack >/dev/null
 
 # AC-00.7 merges, own events ignored
 ev "FLAG 00.merged abc"; ev "STATUS 00 merged into main"
