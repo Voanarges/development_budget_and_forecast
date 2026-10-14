@@ -16,7 +16,7 @@ import {
 } from '../../ui/chart-card';
 import { Card, SectionTitle } from '../../ui/card';
 import { EmptyState } from '../../ui/states';
-import type { AnalyticsProject } from './local-types';
+import type { AnalyticsProject } from './analytics-schema';
 import { CATEGORY_LABELS } from './overrun-heatmap';
 
 export interface CategoryStackChartProps {

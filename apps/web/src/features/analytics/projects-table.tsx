@@ -7,7 +7,7 @@ import {
 } from '@default-project/budget-engine';
 import { Badge } from '../../ui/badge';
 import { cx, FOCUS, SOFT } from '../../ui/cx';
-import type { AnalyticsProject } from './local-types';
+import type { AnalyticsProject } from './analytics-schema';
 
 type SortKey =
   | 'name'

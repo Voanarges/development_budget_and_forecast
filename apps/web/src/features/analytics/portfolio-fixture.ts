@@ -10,7 +10,7 @@ import type {
   CostCategory,
   ProjectStatus,
 } from '@default-project/types';
-import type { AnalyticsProject, AnalyticsResponse } from './local-types';
+import type { AnalyticsProject, AnalyticsResponse } from './analytics-schema';
 
 interface Spec {
   id: string;

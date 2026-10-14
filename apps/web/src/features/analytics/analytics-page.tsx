@@ -17,7 +17,7 @@ import { OverrunHeatmap } from './overrun-heatmap';
 import { PortfolioKpis } from './portfolio-kpis';
 import { ProjectsTable } from './projects-table';
 import { usePortfolio } from './use-portfolio';
-import type { AnalyticsProject } from './local-types';
+import type { AnalyticsProject } from './analytics-schema';
 
 const STATUS_LABELS: Record<StatusFilter, string> = {
   ALL: 'All statuses',

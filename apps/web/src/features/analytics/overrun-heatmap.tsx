@@ -10,7 +10,7 @@ import {
 } from '@default-project/types';
 import { TONE_CLASSES } from '../../ui/badge';
 import { cx } from '../../ui/cx';
-import type { AnalyticsProject } from './local-types';
+import type { AnalyticsProject } from './analytics-schema';
 
 export const CATEGORY_LABELS: Record<CostCategory, string> = {
   LAND: 'Land',

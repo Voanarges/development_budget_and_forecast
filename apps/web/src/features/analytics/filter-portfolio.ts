@@ -5,7 +5,7 @@ import {
   type PortfolioAggregate,
 } from '@default-project/budget-engine';
 import type { CashflowMonth, ProjectStatus } from '@default-project/types';
-import type { AnalyticsProject } from './local-types';
+import type { AnalyticsProject } from './analytics-schema';
 
 export type StatusFilter = 'ALL' | ProjectStatus;
 /** 'ALL' or a calendar year 'YYYY'. */
