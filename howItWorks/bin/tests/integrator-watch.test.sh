@@ -63,8 +63,11 @@ echo x > "$M/SOLUTION.md"
 once; is "AC-00.10 dirt outside howItWorks exits 0" $RC 0; has "AC-00.10 DIRTY lists the path" "$OUT" "DIRTY"; has "AC-00.10 path" "$OUT" "SOLUTION.md"
 bash "$W" --ack >/dev/null; once; is "AC-00.10 the same dirt after ack is quiet" $RC 3
 echo y > "$M/other.txt"
-once; is "AC-00.10 new dirt is reported again" $RC 0
-bash "$W" --ack >/dev/null
+once; is "AC-00.10 more dirt in the same dirty episode is quiet (blocked merges come as STATUS main-dirty)" $RC 3
+rm -f "$M/SOLUTION.md" "$M/other.txt"; once; is "AC-00.10 clean main is quiet" $RC 3
+echo z > "$M/again.txt"
+once; is "AC-00.10 dirt after a clean main is reported again" $RC 0; has "AC-00.10 the new episode lists its path" "$OUT" "again.txt"
+bash "$W" --ack >/dev/null; rm -f "$M/again.txt"; once
 
 # AC-00.12 blocking mode, usage
 ( sleep 2; ev "FLAG 08.merged 0808" ) &
