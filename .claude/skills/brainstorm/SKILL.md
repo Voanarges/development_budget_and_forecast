@@ -14,7 +14,7 @@ Design before code. No code, scaffolding or tests until the panel has run and th
    - Prosecutor: why the favourite fails; each claim `{claim, evidence file:line, what would refute it}`.
    - Advocate: why it is justified.
    - Architect: conflicts or duplication with existing modules, Nx boundaries (`scope:*`), docs.
-   - Tester: which existing tests are at risk; new acceptance criteria AC-1..N.
+   - Tester: which existing tests are at risk; new acceptance criteria as `AC-NN.M` lines (next free number in the owning block of `howItWorks/`, `00` for cross-cutting).
    Scale the brief to the task, never skip the panel.
 6. **Judge subagent** weighs everything by security > correctness > reliability > architecture > tests > quality and returns: chosen approach, mandatory constraints, risk level. A claim "library X cannot do Y" counts only with a live probe.
 7. **Write `docs/specs/<YYYY-MM-DD>-<slug>-design.md`:** Goal / Non-goals · Chosen approach and why not the others · Judge constraints · Affected files · Risks · Test strategy with AC-N · How to verify · Open questions. Re-read it for placeholders and contradictions.

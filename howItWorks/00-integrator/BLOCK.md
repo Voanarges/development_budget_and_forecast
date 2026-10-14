@@ -15,7 +15,7 @@
 - A block stuck in `conflict`: help resolve it in its worktree (only that block's files).
 
 ## Step 4: e2e and the demo (main tree only)
-- `/tmp/kairon-e2e.lock` makes sure there is one runner. Run `npx nx e2e web-e2e`. The specs come from the blocks.
+- Run e2e only via `bash howItWorks/bin/e2e.sh` (machine-wide `e2e` lock, JSON report, `ac-ledger.sh --e2e-report`). The specs come from the blocks.
 - Write `apps/web-e2e/src/cfo-journey.spec.ts`: the scenario from SUMMARY §3 (steps 1–6) as one journey test **on a copy of the demo** (`POST /api/projects/:id/duplicate`).
 - Ports: dev `serve` web 4274 / api 3454; e2e uses `web:preview` on **4300** + api 3454 (stop your own `serve` api before e2e, or keep it: `reuseExistingServer` reuses the api).
 - `/e2e-full`, `/review-full` before shipping.

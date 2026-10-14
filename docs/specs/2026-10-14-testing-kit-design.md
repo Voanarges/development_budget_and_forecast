@@ -26,7 +26,7 @@ It must fit the 3-hour timebox and the 24 GB memory budget.
 
 **A-modified: adapt a lean core natively.** There is one AC registry, the `- AC-NN.M` lines in BLOCK.md. Tests carry `[AC-NN.M]` in their titles, and one script reconciles the two. The skills know whether they are running in a block worktree or in the main tree.
 
-- **B, port DraftIq verbatim (rejected).** It would bring in Telegram, PII, deploy and prod-only steps. It would keep the `AC:<slug>/<n>` tags and `docs/acceptance`, which contradict PROTOCOL §7 and all 98 ACs in BLOCK.md. It would also keep e2e runs inside blocks.
+- **B, port DraftIq verbatim (rejected).** It would bring in Telegram, PII, deploy and prod-only steps. It would keep the `AC:<slug>/<n>` tags and `docs/acceptance`, which contradict PROTOCOL §7 and all 94 ACs in BLOCK.md. It would also keep e2e runs inside blocks.
 - **C, scripts only in `howItWorks/bin` (rejected).** It is deterministic, but it has no test-writing or exploratory layer, and that layer is what the owner asked to adapt.
 
 Inconsistencies in the current kit that A fixes:
@@ -40,7 +40,8 @@ Inconsistencies in the current kit that A fixes:
 
 | Kind | Path | Status |
 |---|---|---|
-| Script | `howItWorks/bin/ac-ledger.sh` (+ `howItWorks/bin/tests/ac-ledger.test.sh` fixtures) | new |
+| Script | `howItWorks/bin/ac-ledger.sh` (+ `howItWorks/bin/tests/ac-ledger.test.sh`, fixtures built in a temp dir) | new |
+| Script | `howItWorks/bin/e2e.sh`: the only e2e entry — main tree only, holds the `e2e` mkdir lock for the whole run (a lock taken in one Bash tool call dies with that shell), Playwright list+JSON, then `ac-ledger.sh --e2e-report`; `--exec CMD` for exploratory scripts (+ `tests/e2e.test.sh`) | new |
 | Script | `howItWorks/bin/check.sh`: weakening check also catches `test.fixme`, `.todo`, `xdescribe`, `describe.skip`, `it.skip`/`test.skip` | edit |
 | Agent | `.claude/agents/test-automator.md`: turns a confirmed defect or an uncovered AC into a tagged test with red-proof | new |
 | Agent | `.claude/agents/regression-scout.md`: diff → ACs and spec files to re-run, including those outside the diff (read-only) | new |
@@ -115,15 +116,16 @@ Inconsistencies in the current kit that A fixes:
 
 - **AC-1** `bash howItWorks/bin/ac-ledger.sh --self-test` exits 0. The fixtures cover OK, UNCOVERED, SKIPPED (skip/fixme/todo/xdescribe), ORPHAN, DUPLICATE, MANUAL, UNRUN, e2e routing (an e2e AC tagged only in a unit spec → UNCOVERED), prefix safety (`[AC-01.10]` does not cover AC-01.1), multiple tags, and an exact `SUMMARY` line.
 - **AC-2** Mutation: breaking the matcher (prefix-unsafe regex) makes `--self-test` exit ≠ 0.
-- **AC-3** On the real repo now: exit 0, `ORPHAN=0`, `DUPLICATE=0`, and the 98 registry lines are all classified.
+- **AC-3** On the real repo now: exit 0, `ORPHAN=0`, `DUPLICATE=0`, and all 94 registry lines are classified (AC-00.1/00.3/00.4 and AC-01.11 got an explicit `(check)` marker, AC-00.2 an `(e2e, integrator)` marker).
 - **AC-4** Demo with a temporary spec:
   - with the tag `it('… [AC-05.1]')`, AC-05.1 is OK;
   - with `it.skip`, it is SKIPPED, and with `--block 05` the exit code is 1;
   - after the file is removed, the output matches the baseline.
 - **AC-5** It runs under `/bin/bash` 3.2 (no `declare -A`, `mapfile`, `${x,,}` or `grep -P`).
-- **AC-6** `check.sh` weakening check: fixture diffs that add `test.fixme(`, `it.todo(`, `xdescribe(` or `describe.skip(` are flagged (`howItWorks/bin/tests/check-weakening.test.sh`).
+- **AC-6** `check.sh` weakening check (`weakening_lines` in `lib.sh`): fixture diffs that add `test.fixme(`, `it.todo(`, `xdescribe(` or `describe.skip(` are flagged (`howItWorks/bin/tests/check-weakening.test.sh`).
 - **AC-7** `core-skill-lint` and `core-claude-lint` pass for the 3 agents and the 5 changed or new skills.
 - **AC-8** `grep -rn 'AC:<\|AC:[a-z]\|docs/acceptance' .claude README.md howItWorks` → no matches.
+- **AC-9b** `bash howItWorks/bin/tests/e2e.test.sh` exits 0: `e2e.sh` refuses outside the main tree (exit 2), runs `--exec` under the lock, releases it, and passes the exit code through.
 - **AC-9** The `/done-check` text routes worktree → `check.sh <id>` and main tree → full gate + ledger. Neither path runs e2e inside a worktree (grep check).
 - **AC-10** After the commit, `git status --porcelain .claude howItWorks/bin` is empty, so it is ready for `baseline.sh`.
 
@@ -140,5 +142,6 @@ Then run `/core-skill-lint` and `/core-claude-lint` on `.claude`, then `/done-ch
 
 ## Open questions
 
+0. **Constraint 7 was overtaken (2026-10-14 10:55).** `baseline.sh` ran while this was being implemented. `0adaf17` contains the ledger, the scripts, the BLOCK.md markers and early agent versions, but the OLD `/done-check`, `/test-task` and `/e2e-full`. Worktrees 01 and 02 were cut from it. Fix: commit the rest to main with `bin/main-commit.sh` BEFORE `w0-frozen` (blocks 04–13 are cut from main after it), then tell 01 and 02 to `git merge main` (`bin/note.sh`). Block 03 is cut from `feat/01`, so it gets the kit once 01 merges main.
 1. **Commit permission (owner).** Constraint 7 needs the kit committed before the baseline. CLAUDE.md says "do not commit unless asked", so a separate "commit" from the owner is needed.
 2. **Block 01 e2e wiring (findings, not part of this change).** Playwright `webServer` starts only `web:preview` on 4274, while the plan says api 3454 + preview 4300. Also, `apps/web-e2e/project.json` has `tags: []` and no `scope:*`. Block 01 owns both. Before the start, add them to `01-foundation-contracts/BLOCK.md` steps or confirm that they are already there.

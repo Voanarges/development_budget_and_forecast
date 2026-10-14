@@ -57,8 +57,9 @@ Every npm package is installed in block 01 (CONTRACTS §8). In blocks **only `np
 - In a block: `bash $MAIN/howItWorks/bin/heavy.sh $WT npx nx test|lint|typecheck <project>` for the projects you touched. Always go through heavy.sh (the memory semaphore).
 - Inside a block, `/done-check` is replaced by `bash $MAIN/howItWorks/bin/check.sh NN` (ownership, format, affected lint/test/typecheck/build, test weakening). Its exit code is what counts.
 - New behaviour gets a test in the same commit. Names: `should X when Y`. Assertions are never weakened. If an old test conflicts with a new requirement, rewrite it deliberately and explain why in the commit message.
-- **e2e is only for the integrator**, in the main tree, one runner at a time (`/tmp/kairon-e2e.lock`). A block writes its e2e spec `apps/web-e2e/src/<feature>.spec.ts`. You may write it, but the integrator runs it. Each e2e test calls `POST /api/projects/<taucha-stadtvilla id>/duplicate` (CONTRACTS §5) in `beforeEach` and works on the copy. The demo project is never modified.
-- Tag tests with an AC from the block, e.g. `it('should ... [AC-04.3]')`.
+- **e2e is only for the main tree**, one runner on the machine: always `bash $MAIN/howItWorks/bin/e2e.sh [--grep RE]` (it holds the `e2e` mkdir lock under `/tmp/kairon-locks`, writes a JSON report and checks it with the AC ledger). A block writes its e2e spec `apps/web-e2e/src/<feature>.spec.ts`. You may write it, but the integrator runs it. Each e2e test calls `POST /api/projects/<taucha-stadtvilla id>/duplicate` (CONTRACTS §5) in `beforeEach` and works on the copy. The demo project is never modified.
+- Tag tests with an AC from the block, e.g. `it('should ... [AC-04.3]')` (one bracket per id: `[AC-05.1][AC-05.2]`). `bash $MAIN/howItWorks/bin/ac-ledger.sh --block NN` shows which of your ACs are OK / UNCOVERED / SKIPPED; e2e ACs stay UNRUN until the main tree runs them.
+- Testing commands: `/test-task` (prove ACs, red-proof), `/fix-test` (repair a red test without weakening it); agents `test-automator`, `regression-scout`. Design: `docs/specs/2026-10-14-testing-kit-design.md`.
 
 ## 8. Before finishing a block
 
