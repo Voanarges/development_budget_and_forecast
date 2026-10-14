@@ -6,9 +6,10 @@ test('should jump from ⌘K search to the highlighted heat pump row [AC-13.12]',
   page,
 }) => {
   await page.goto('/projects');
+  const box = page.getByRole('combobox', { name: 'Search' });
+  await expect(box).toBeVisible();
 
   await page.keyboard.press('ControlOrMeta+k');
-  const box = page.getByRole('combobox', { name: 'Search' });
   await expect(box).toBeFocused();
   await box.fill('AROTHERM');
   const items = page.getByRole('group', { name: 'Cost items' });
