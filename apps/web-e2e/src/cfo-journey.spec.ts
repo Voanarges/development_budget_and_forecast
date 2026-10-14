@@ -21,11 +21,12 @@ function kpi(page: Page, label: string): Locator {
   return page.getByText(label, { exact: true }).first().locator('xpath=following-sibling::dd[1]');
 }
 
-/** First euro amount in a text (`€659,940.15` or `-€1,234.00`) → integer cents, parsed from the string, never via float. */
+/** First euro amount in a text (`€659,940.15`, `€540,456` or `-€1,234`) → integer cents, parsed from the string, never via float.
+ * KPI and hero cards show whole euros, so equal cents means equal at display precision. */
 function eurToCents(text: string | null): number {
-  const m = (text ?? '').match(/(-|−)?\s*€\s*([\d,]+)\.(\d{2})/);
+  const m = (text ?? '').match(/(-|−)?\s*€\s*(\d[\d,]*)(?:\.(\d{2}))?/);
   expect(m, `a euro amount in "${text}"`).toBeTruthy();
-  const cents = Number(`${m?.[2].replace(/,/g, '')}${m?.[3]}`);
+  const cents = Number(`${m?.[2].replace(/,/g, '')}${m?.[3] ?? '00'}`);
   return m?.[1] ? -cents : cents;
 }
 
