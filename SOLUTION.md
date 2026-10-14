@@ -97,6 +97,10 @@ Auth, multi-currency, multi-tenancy, bank integrations, deploy, audit log, appro
 - **Analytics** filters by year only. There is no date-range period and no drill-down from the heatmap.
 - **Wizard:** no server-side idempotency (a double click is blocked only in the UI), no cost multipliers for house options, and no bungalow plan.
 - **The CSV import** is capped at 500 rows by Express's default 100 kB JSON body limit.
+- **Found by the final browser pass, not fixed** (`docs/test-runs/2026-10-14-123000-explore.md`):
+  - A few rows at the per-field maximum (qty 2,000,000 × €20,000,000) can push a project total out of the safe-integer range; the engine throws, and the project list and analytics return 500 for every project. A write that would overflow should be rejected with 400.
+  - The Land area field reads a decimal comma as a thousands separator (`600,5` → 6,005 m²).
+  - The mobile navigation drawer does not close on Escape.
 
 ## 6. With one more day
 
