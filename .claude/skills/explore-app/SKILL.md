@@ -38,8 +38,10 @@ For each step, use `browser_navigate` → `browser_snapshot` (read the accessibi
 
 After every step, run `browser_console_messages` (any error = a finding) and `browser_network_requests` (any 4xx/5xx
 not caused by deliberate bad input = a finding). Repeat steps 1–2 at `browser_resize` 768×1024 and 375×812: the sidebar
-becomes a drawer, and tables stay usable. Take screenshots only as proof of a finding, with `browser_take_screenshot`
-into `/tmp/kairon-explore/`, never into the repo.
+becomes a drawer, and tables stay usable. Take screenshots only as proof of a finding. Always pass an absolute
+`filename` inside the MCP output dir: `/tmp/kairon-explore/mcp/<page>-<viewport>-<section>.png`. A bare name is saved
+relative to the MCP process's cwd, which is the repo root, and any other absolute path is denied. Afterwards,
+`git status --porcelain` must show no new `*.png`/`*.yml`.
 
 ## 3. Unscripted pass
 
