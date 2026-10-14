@@ -21,6 +21,14 @@ function kpi(page: Page, label: string): Locator {
   return page.getByText(label, { exact: true }).first().locator('xpath=following-sibling::dd[1]');
 }
 
+/** First euro amount in a text (`€659,940.15` or `-€1,234.00`) → integer cents, parsed from the string, never via float. */
+function eurToCents(text: string | null): number {
+  const m = (text ?? '').match(/(-|−)?\s*€\s*([\d,]+)\.(\d{2})/);
+  expect(m, `a euro amount in "${text}"`).toBeTruthy();
+  const cents = Number(`${m?.[2].replace(/,/g, '')}${m?.[3]}`);
+  return m?.[1] ? -cents : cents;
+}
+
 function itemPatchSaved(page: Page) {
   return page.waitForResponse((r) => r.request().method() === 'PATCH' && r.url().includes('/items/') && r.ok());
 }
@@ -107,5 +115,34 @@ test('should answer the CFO questions live across tabs and keep edits after a re
     await expect(dialog).toBeHidden();
   });
 
-  // TODO(00): step 6 (Profitability: markup 15 → 12 → contract price, profit and margin drop) once 06's HANDOFF lands.
+  await test.step('6. Profitability uses the same forecast; markup 15 % → 12 % lowers contract price and profit', async () => {
+    await page.goto(`/projects/${projectId}/profitability`);
+    const heroForecast = page.getByTestId('hero-forecast');
+    await expect(heroForecast).toBeVisible();
+    // one engine everywhere: the tab's EAC equals the header KPI after the step-3 edit
+    expect(eurToCents(await heroForecast.innerText())).toBe(eurToCents(await kpi(page, 'Forecast (EAC)').innerText()));
+
+    const markup = page.getByLabel('Company markup %');
+    await expect(markup).toHaveValue('15.0');
+    const price = page.getByTestId('hero-contract-price');
+    const profit = page.getByTestId('hero-forecast-profit');
+    const margin = page.getByTestId('hero-margin');
+    const priceBefore = eurToCents(await price.innerText());
+    const profitBefore = eurToCents(await profit.innerText());
+    const marginBefore = await margin.innerText();
+
+    const saved = page.waitForResponse(
+      (r) => r.request().method() === 'PATCH' && r.url().endsWith(`/projects/${projectId}`) && r.ok(),
+    );
+    await markup.fill('12');
+    await expect(margin).not.toHaveText(marginBefore);
+    await expect.poll(async () => eurToCents(await price.innerText())).toBeLessThan(priceBefore);
+    await expect.poll(async () => eurToCents(await profit.innerText())).toBeLessThan(profitBefore);
+    await saved;
+    const priceAfter = await price.innerText();
+
+    await page.reload();
+    await expect(page.getByLabel('Company markup %')).toHaveValue('12.0');
+    await expect(page.getByTestId('hero-contract-price')).toHaveText(priceAfter);
+  });
 });
