@@ -12,6 +12,7 @@ Nx monorepo for live-coding sessions. Keep answers short, show commands and thei
 ## Commands
 - Serve: `npx nx serve api` (http://localhost:3454/api), `npx nx serve web` (http://localhost:4274)
 - Checks: `npx nx affected -t lint test typecheck --base=HEAD`; everything: `npx nx run-many -t lint test typecheck build`
+- Run the app for a browser walkthrough (main tree only): `bash howItWorks/bin/app.sh up [--seed] | status | down`; Playwright MCP `playwright-kairon` (local scope, headless, localhost only) → `/explore-app`.
 - E2E (main tree only): `bash howItWorks/bin/e2e.sh [--grep RE]`; AC registry check: `bash howItWorks/bin/ac-ledger.sh [--block NN]`
 - Prisma: `npx nx run api:prisma-migrate -- --name <change>`, `npx nx run api:prisma-generate`
 - Stop only this project's processes: `pkill -f "$PWD/node_modules"`, then `npx nx daemon --stop` (in this order: killing a served app respawns the daemon); never kill processes by a generic name (other projects run on this machine).
@@ -65,7 +66,7 @@ Nx monorepo for live-coding sessions. Keep answers short, show commands and thei
 
 ## Commands (full list with descriptions: README.md)
 - Flow for a task: `/create-task` → `/brainstorm` → code with tests → `/test-task` → `/update-doc` → `/done-check`; a red test → `/fix-test`; before shipping `/e2e-full`, `/review-full`, then the user runs `/mr`.
-- Testing agents (spawned by the skills above, at most one test-running agent per session): `test-automator` (tagged guard test + red-proof), `regression-scout` (diff → ACs to re-run, read-only), `exploratory-qa-tester` (main tree, once before shipping).
+- Testing agents (spawned by the skills above, at most one test-running agent per session): `test-automator` (tagged guard test + red-proof), `regression-scout` (diff → ACs to re-run, read-only), `exploratory-qa-tester` (main tree, once before shipping, through `/explore-app`).
 - Owner-only (never invoke them yourself): `/mr`, `/checkout`, `/report-tasks`, `/mode-process`, `/mode-fast`.
 - Artifacts: `docs/tasks/` (task statements), `docs/specs/` (designs), acceptance criteria `- AC-NN.M` in `howItWorks/NN-*/BLOCK.md`, tests tagged `[AC-NN.M]`, `docs/test-runs/` (e2e run records + `ledger-baseline.txt` regression ratchet, written by `e2e.sh`), `docs/architecture/` (as-built docs, index in its README).
 

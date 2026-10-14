@@ -1,6 +1,6 @@
 # CR-05-add-days
 - Author: block 05 · Date: 2026-10-14
-- Status: accepted (integrator 11:50): applied in the first block-00 batch after w0-frozen together with CR-11; keep `addDaysUtc` until the note "CR-05 applied"
+- Status: applied in main 1e0fe11 (merge: 00-integrator), CONTRACT_VERSION 2
 - Affected: engine (`libs/shared/budget-engine/src/lib/schedule.ts` + index export)
 - Blocks affected: 05 (shift a work's dates), possibly 12 (the wizard shifts template dates)
 
