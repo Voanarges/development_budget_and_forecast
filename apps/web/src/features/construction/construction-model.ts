@@ -1,4 +1,8 @@
-import { daysBetween, summarizeProject } from '@default-project/budget-engine';
+import {
+  addDays,
+  daysBetween,
+  summarizeProject,
+} from '@default-project/budget-engine';
 import type {
   BudgetLine,
   CostItem,
@@ -44,12 +48,6 @@ export function formatDayMonth(iso: string): string {
   return `${d} ${MONTHS[m - 1]}`;
 }
 
-// TODO CR-05-add-days: replace with the engine export once the CR is applied.
-export function addDaysUtc(iso: string, days: number): string {
-  const [y, m, d] = parseIso(iso);
-  return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
-}
-
 /** Calendar days, both ends included (owner's decision 2026-10-14): 19–30 Oct = 12. */
 export function workDurationDays(
   startDate: string | null,
@@ -81,7 +79,7 @@ export function shiftWorkToDate(
     return { startDate: newStart, endDate: work.endDate };
   return {
     startDate: newStart,
-    endDate: addDaysUtc(newStart, daysBetween(work.startDate, work.endDate)),
+    endDate: addDays(newStart, daysBetween(work.startDate, work.endDate)),
   };
 }
 

@@ -4,7 +4,6 @@ import {
 } from '@default-project/budget-engine';
 import { normalise } from '../project/project-cache';
 import {
-  addDaysUtc,
   buildGanttModel,
   buildScheduleAlerts,
   conflictCountBySection,
@@ -40,9 +39,15 @@ describe('construction-model', () => {
       expect(formatDayMonth('2026-09-30')).toBe('30 Sep');
     });
 
-    it('should add days across month and year boundaries', () => {
-      expect(addDaysUtc('2026-10-28', 11)).toBe('2026-11-08');
-      expect(addDaysUtc('2026-12-30', 3)).toBe('2027-01-02');
+    it('should shift across month and year boundaries (engine addDays)', () => {
+      const shift = (start: string, end: string, to: string) =>
+        shiftWorkToDate({ startDate: start, endDate: end }, to).endDate;
+      expect(shift('2026-10-19', '2026-10-30', '2026-10-28')).toBe(
+        '2026-11-08',
+      );
+      expect(shift('2026-12-01', '2026-12-04', '2026-12-30')).toBe(
+        '2027-01-02',
+      );
     });
 
     it('should count duration with both ends included', () => {
