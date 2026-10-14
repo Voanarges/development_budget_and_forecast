@@ -46,7 +46,6 @@ test('should clear the late-windows alert after the delivery moves earlier in Ma
     .or(materialRow.locator('input[type="date"]'));
   await input.fill('2026-10-18');
   await input.press('Enter');
-  await input.blur().catch(() => undefined);
   expect((await saved).ok()).toBe(true);
 
   await page.getByRole('tab', { name: 'Construction' }).click();
