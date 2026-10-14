@@ -7,7 +7,7 @@ CHANGED=$( { git diff --name-only HEAD 2>/dev/null; git ls-files --others --excl
 [ -z "$CHANGED" ] && exit 0
 MSG="[mode: process] Before calling it done: npx nx affected -t lint test typecheck --base=HEAD"
 if echo "$CHANGED" | grep -qE 'apps/web/src/|\.controller\.ts$'; then
-  MSG="$MSG ; UI or API behaviour changed: also run npx nx e2e web-e2e"
+  MSG="$MSG ; UI or API behaviour changed: also run bash howItWorks/bin/e2e.sh"
 fi
 jq -n --arg m "$MSG" '{systemMessage: $m}'
 exit 0

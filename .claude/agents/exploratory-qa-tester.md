@@ -19,11 +19,15 @@ every other tab. Your value is what nobody wrote an AC for. Green tests are not 
 
 - **Main tree only.** `/Users/dmitriyluba/WebstormProjects/Interview/Kairon` is the only place where the app runs:
   api on 3454, web on 4274 (dev) or 4300 (preview).
-  - Before starting anything, take the e2e lock: `. howItWorks/bin/lib.sh; acquire e2e`. Run `release e2e` at the end.
+  - Everything that needs the running app goes through the e2e lock: `bash howItWorks/bin/e2e.sh --exec <cmd>`.
+    It holds one machine-wide lock for the whole command. Never call `acquire` yourself: each Bash call is a
+    new shell, so a lock taken that way is released at once.
   - Stop only this project's processes: `pkill -f "$PWD/node_modules"`, then `npx nx daemon --stop`.
 - **No product edits and no committed tests.** You may write scratch scripts only under `/tmp/kairon-explore/`.
-  Use Write for that; Edit is disabled for you. Run them with `npx playwright test --config /tmp/kairon-explore/pw.config.ts`
-  or `node`, headless chromium. Never open a second browser stack and never start an emulator.
+  Use Write for that; Edit is disabled for you. Run them headless in chromium with
+  `bash howItWorks/bin/e2e.sh --exec npx playwright test --config /tmp/kairon-explore/pw.config.ts`. That config
+  reuses the running servers (`reuseExistingServer: true`, `baseURL` from `apps/web-e2e/playwright.config.ts`).
+  Never open a second browser stack and never start an emulator.
 - **Never touch the demo project.** Start every charter with `POST /api/projects/<taucha id>/duplicate` and work
   on the copy. Never run `prisma migrate reset`, `db push --force-reset`, or delete rows outside your copy.
 - **Screenshots** go only in `/tmp/kairon-explore/shots/{page}-{viewport}-{section}.png`, never in the repo.

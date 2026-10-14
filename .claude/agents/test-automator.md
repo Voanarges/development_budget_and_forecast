@@ -66,8 +66,9 @@ You guard it with a test. Code and test titles are in English.
    A defect in existing code: break the guarded behaviour by hand, run, then revert, and check that `git diff` of
    the product file is empty. Never use `git stash` or `checkout`. If a new feature fails with a compile error,
    that counts as red, but say so.
-7. **Ledger.** Run `bash "$MAIN/howItWorks/bin/ac-ledger.sh" --block NN | grep 'AC-NN.M'`. The AC should be
-   `OK`. For an e2e AC it should be `UNRUN` until the main tree runs it.
+7. **Store the red-proof** in `$MAIN/howItWorks/NN-*/HANDOFF.md`, section `## Red-proof`: `AC-NN.M · spec · red: … · green: …`.
+8. **Ledger.** Run `bash "$MAIN/howItWorks/bin/ac-ledger.sh" --block NN | grep 'AC-NN.M'`. The AC should be
+   `OK`. For an e2e AC it should be `UNRUN` until the main tree runs it. `REGRESSED` means an AC proven before (`docs/test-runs/ledger-baseline.txt`) broke: stop, that is `/fix-test`, never a baseline edit.
 
 ## Output
 

@@ -72,7 +72,7 @@ code() { if [ "$CODE" = "$2" ]; then ok "$1 (exit $CODE)"; else bad "$1 — exit
 # R1: nothing merged → report only
 run
 code "R1 unmerged block never fails" 0
-check "R1 summary exact" '^SUMMARY OK=4 UNCOVERED=3 SKIPPED=4 UNRUN=2 FAILED=0 MANUAL=1 ORPHAN=0 DUPLICATE=0$'
+check "R1 summary exact" '^SUMMARY OK=4 UNCOVERED=3 SKIPPED=4 UNRUN=2 FAILED=0 MANUAL=1 ORPHAN=0 DUPLICATE=0 REGRESSED=0$'
 check "R1 prefix safety: [AC-01.10] does not cover AC-01.1" '^UNCOVERED +AC-01\.1 '
 check "R1 AC-01.10 OK" '^OK +AC-01\.10 '
 check "R1 multi-tag covers both" '^OK +AC-01\.4 '
@@ -118,10 +118,57 @@ echo "- AC-01.3 duplicated id." >>"$REG/01-foundation/BLOCK.md"
 run
 code "R6 duplicate fails" 1
 check "R6 duplicate row" '^DUPLICATE +AC-01\.3 '
+sed -i.bak '/duplicated id\./d' "$REG/01-foundation/BLOCK.md"
 
 # R7: usage errors
 run --bogus
 code "R7 unknown argument" 2
+
+# R8: --write-baseline stores the proven ACs (unit OK now; e2e only when proven by a report)
+B="$T/base.txt"
+run --write-baseline "$B"
+code "R8 write baseline" 0
+if grep -qx 'AC-01.10 unit' "$B" && grep -qx 'AC-01.3 unit' "$B" && ! grep -q 'AC-01.6' "$B" && ! grep -q 'AC-01.1 ' "$B"; then ok "R8 baseline has unit OK ids only"; else bad "R8 baseline content:"; cat "$B"; fi
+run --e2e-report "$T/report.json" --write-baseline "$B"
+if grep -qx 'AC-01.6 e2e' "$B" && grep -qx 'AC-01.10 unit' "$B" && ! grep -q 'AC-01.12' "$B"; then ok "R8 baseline is a union and gains the e2e id proven by the report"; else bad "R8 union:"; cat "$B"; fi
+
+# R9: an AC proven before and not OK now is REGRESSED — fails even in an unmerged block
+sed -i.bak 's/\[AC-01.10\]/[AC-01.15]/' "$R/libs/engine/src/money.spec.ts"
+echo "- AC-01.15 renamed tag target." >>"$REG/01-foundation/BLOCK.md"
+run --baseline "$B"
+code "R9 regression fails the run" 1
+check "R9 regressed row" '^REGRESSED +AC-01\.10 +was OK in the baseline, now UNCOVERED'
+check "R9 summary counts it" 'REGRESSED=1$'
+mv "$R/libs/engine/src/money.spec.ts.bak" "$R/libs/engine/src/money.spec.ts"
+
+# R10: e2e ids in the baseline are judged only with a report
+run --baseline "$B"
+code "R10 no report: e2e baseline id not judged" 0
+echo 'AC-01.12 e2e' >>"$B"
+run --baseline "$B" --e2e-report "$T/report.json"
+check "R10 failed e2e that was proven → REGRESSED" '^REGRESSED +AC-01\.12 '
+code "R10 exit" 1
+sed -i.bak '/AC-01.12/d' "$B"
+
+# R11: --block judges only that block's baseline ids; a retired id (gone from BLOCK.md) is reported, not failed
+printf 'AC-99.1 unit\n' >>"$B"
+sed -i.bak 's/\[AC-01.10\]/[AC-01.15]/' "$R/libs/engine/src/money.spec.ts"   # AC-01.10 regresses again
+run --baseline "$B" --block 02
+code "R11 --block 02 ignores block 01's regression" 0
+run --baseline "$B" --block 01
+check "R11 --block 01 reports it" '^REGRESSED +AC-01\.10 '
+mv "$R/libs/engine/src/money.spec.ts.bak" "$R/libs/engine/src/money.spec.ts"
+run --baseline "$B"
+check "R11 retired id reported" '^RETIRED +AC-99\.1 '
+if printf '%s\n' "$OUT" | grep -q '^REGRESSED'; then bad "R11 retired id must not count as regressed"; else ok "R11 retired id is not a regression"; fi
+
+# R12: the default baseline is $MAIN/docs/test-runs/ledger-baseline.txt; --no-baseline turns it off
+mkdir -p "$T/main/docs/test-runs"; echo 'AC-01.1 unit' >"$T/main/docs/test-runs/ledger-baseline.txt"
+run
+code "R12 default baseline is used" 1
+run --no-baseline
+code "R12 --no-baseline" 0
+rm -rf "$T/main/docs"
 
 echo "---"
 [ "$FAILS" = 0 ] && { echo "ac-ledger tests: PASS"; exit 0; }
