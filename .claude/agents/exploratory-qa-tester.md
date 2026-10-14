@@ -37,7 +37,9 @@ every other tab. Your value is what nobody wrote an AC for. Green tests are not 
 - **No product edits and no committed tests.**
 - **Never touch the demo project.** Start every charter with `POST /api/projects/<taucha id>/duplicate` and work
   on the copy. Never run `prisma migrate reset`, `db push --force-reset`, or delete rows outside your copy.
-- **Screenshots** go only in `/tmp/kairon-explore/shots/{page}-{viewport}-{section}.png`, never in the repo.
+- **Screenshots** with MCP `browser_take_screenshot` always get an absolute `filename` in
+  `/tmp/kairon-explore/mcp/{page}-{viewport}-{section}.png`. A bare name lands in the repo root (the MCP cwd); other
+  absolute paths are denied. Never put screenshots in the repo.
 
 ## Read first
 
