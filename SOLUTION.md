@@ -32,12 +32,12 @@ All 13 planned blocks are merged into `main`. Each block has a `merge: <block>` 
 
 Verification (main tree, exit codes):
 
-| Command                                                      | Result                     |
-| ------------------------------------------------------------ | -------------------------- |
-| `npx nx run-many -t lint test typecheck build`               | FILLED AT FINISH           |
-| `bash howItWorks/bin/e2e.sh` (Playwright, all specs)         | FILLED AT FINISH           |
-| `bash howItWorks/bin/ac-ledger.sh --block 00 --e2e-report …` | FILLED AT FINISH           |
-| `npx prisma db seed` twice → identical row counts            | 0 / 0, identical (AC-03.5) |
+| Command                                                      | Result                                                                                                 |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `npx nx run-many -t lint test typecheck build`               | exit 0: 5 projects (api, web, web-e2e, types, budget-engine)                                           |
+| `bash howItWorks/bin/e2e.sh` (Playwright, all specs)         | exit 0: 20 passed; AC ledger OK=138, UNCOVERED=0, FAILED=0 (`docs/test-runs/2026-10-14-122531-e2e.md`) |
+| `bash howItWorks/bin/ac-ledger.sh --block 00 --e2e-report …` | exit 0: AC-00.2 OK (CFO journey)                                                                       |
+| `npx prisma db seed` twice → identical row counts            | 0 / 0, identical (AC-03.5)                                                                             |
 
 The demo journey `apps/web-e2e/src/cfo-journey.spec.ts` [AC-00.2] walks through these steps:
 
