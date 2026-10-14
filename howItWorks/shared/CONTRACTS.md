@@ -330,7 +330,8 @@ Response = zod type from `@default-project/types`. Errors are Nest HTTP exceptio
 | `PATCH /projects/:id/plan`; `POST|PATCH|DELETE /projects/:id/plan/rooms[/:roomId]`; `POST|PATCH|DELETE /projects/:id/plan/components[/:componentId]` | changing a component's `qtyMilli` **in the same transaction** updates `qtyMilli` of every linked CostItem (`boqComponentId`) | 08 |
 | `GET /projects/:id/deliveries`; `POST /projects/:id/deliveries/import` `{fileName, rows: DeliveryImportRow[]}` → `ImportResult` | 10 |
 | `GET /analytics/portfolio` → `PortfolioAnalytics` = `{ totals: Summary; profitability: Profitability /* over the sum */; projects: Array<{projectId; slug; name; city; status; summary: Summary; profitability: Profitability; byCategory: Record<CostCategory, Summary>}>; byCategory: Record<CostCategory, Summary>; cashflow: Array<{month; planned; actual; forecast; cumulativePlanned; cumulativeActual; cumulativeForecast}> }` | 11 |
-| `POST /projects/wizard` `WizardInput` → `ProjectSnapshot` (clones the template, scales quantities by area, applies the step overrides) | 12 |
+| `POST /projects/wizard` `WizardInput` → `ProjectSnapshot` (clones the template, scales quantities by area: only continuous units `m3 m2 m t kg h` of MATERIALS/CONSTRUCTION rows and BOQ, counted units stay (CR-12), applies the step overrides) | 12 |
+| `GET /projects/wizard/template` → `ProjectSnapshot` of `template-efh-144` (404 when the seed has not run). Two segments after `/projects`, so no clash with `GET /projects/:id` (CR-12) | 12 |
 
 `WizardInput` = `{ name; clientName; city; startDate; markupBps; land: { address; postalCode; municipality; state; areaM2; landValuePerM2Cents; grzBps; gfzBps; maxStoreys; soilClass; groundwaterDepthCm?; utilities: Array<{type: UtilityType; status: UtilityStatus}> }; house: { livingAreaM2; storeys: 1|2; energyStandard: 'EH55'|'EH40'; heating: 'HEAT_PUMP'|'GAS_HYBRID'; wallType: 'SAND_LIME_ETICS'|'MONOLITHIC_BRICK' }; approvedByCategory: Record<CostCategory, cents> }`.
 | `GET /search?q=` → `SearchResult[]` (`{type: project|item|organization|line; id; projectId?; title; subtitle; href}`) | 13 |
@@ -350,7 +351,7 @@ Two rows in one file with the same (`itemCode`,`deliveryNoteNo`): the second one
 ## 6. Web: data and state (implemented by 02, used by everyone)
 
 - `apps/web/src/lib/api-client.ts`: `apiGet/apiPost/apiPatch/apiDelete` with the timeout and error handling.
-- Query keys (`apps/web/src/lib/query-keys.ts`): `['projects']`, `['project', id]`, `['organizations']`, `['deliveries', projectId]`, `['analytics','portfolio']`, `['search', q]`.
+- Query keys (`apps/web/src/lib/query-keys.ts`): `['projects']`, `['project', id]`, `['organizations']`, `['deliveries', projectId]`, `['analytics','portfolio']`, `['search', q]`. A block-private key lives in its own feature folder (e.g. `['project-wizard','template']` in `features/project-wizard/`, CR-12); `query-keys.ts` lists only the shared ones.
 - `useProjectSnapshot(id, select?)` → cached `ProjectCache` = snapshot + `itemsById`, `itemIdsByLineId`, `linesById`, `orgsById`. `refetchOnWindowFocus:false`, `staleTime: 30s`.
 - **Re-renders:** a table renders `useItemIds(projectId, lineId)` (an array of ids that keeps its identity through structural sharing). A row subscribes to `useItem(projectId, itemId)`. Rows are `React.memo`. Summaries use `useProjectSummary(projectId)` (`select` + memoized engine call).
 - **Edits:** `useEditItem(projectId)` → `(itemId, patch) => void`: (1) `queryClient.cancelQueries(['project',id])`; (2) `setQueryData` replaces **only** that row (other rows keep their identity); (3) `autosaveQueue.enqueue('item:'+itemId, patch)`.

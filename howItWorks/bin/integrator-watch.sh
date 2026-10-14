@@ -17,7 +17,17 @@ if [ "${1:-}" = "--ack" ]; then
   [ -f "$P.pending" ] || { log "nothing to ack"; exit 0; }
   sed -n 's/^offset //p' "$P.pending" > "$P.offset"
   sed -n 's/^dirty //p' "$P.pending" > "$P.dirty"
-  mv "$P.pending.cr" "$P.cr" 2>/dev/null
+  # CRs reported in this round are acked at their CURRENT mtime: the integrator's own edit (status line)
+  # must not wake it again; a CR that appeared after the report is not in the list and stays news
+  if [ -f "$P.pending.cr" ]; then
+    while IFS="$(printf '\t')" read -r name m; do
+      if grep -qxF "rep $name" "$P.pending"; then
+        m=$(stat -f %m "$CRD/$name" 2>/dev/null || stat -c %Y "$CRD/$name" 2>/dev/null || echo "$m")
+      fi
+      printf '%s\t%s\n' "$name" "$m"
+    done < "$P.pending.cr" > "$P.cr"
+    rm -f "$P.pending.cr"
+  fi
   rm -f "$P.pending"
   log "acked"
   exit 0
@@ -26,7 +36,7 @@ case "${1:-}" in --once | "") ;; *) echo "usage: integrator-watch.sh [--once | -
 
 # one_pass: prints the events, writes $P.pending (+ .cr); returns 0 when there are events
 one_pass() {
-  local off size new chunk cur now name m fp dirt out=""
+  local off size new chunk now name m fp dirt out="" reps=""
   off=$(cat "$P.offset" 2>/dev/null); off=${off:-0}
   size=0; [ -f "$EVLOG" ] && size=$(wc -c < "$EVLOG" | tr -d ' ')
   [ "$size" -lt "$off" ] && off=0   # the log was recreated
@@ -53,7 +63,7 @@ one_pass() {
       continue
     fi
     printf '%s\t%s\n' "$name" "$m" >> "$P.pending.cr"
-    grep -qxF "$(printf '%s\t%s' "$name" "$m")" "$P.cr" 2>/dev/null || out="$out${out:+$'\n'}CR $name"
+    grep -qxF "$(printf '%s\t%s' "$name" "$m")" "$P.cr" 2>/dev/null || { out="$out${out:+$'\n'}CR $name"; reps="$reps${reps:+$'\n'}rep $name"; }
   done
 
   # main tree dirt outside howItWorks/, reported when its fingerprint changes
@@ -65,6 +75,7 @@ one_pass() {
   fi
 
   printf 'offset %s\ndirty %s\n' "$new" "$fp" > "$P.pending"
+  [ -n "$reps" ] && echo "$reps" >> "$P.pending"
   [ -n "$out" ] || return 1
   echo "$out"
   return 0
