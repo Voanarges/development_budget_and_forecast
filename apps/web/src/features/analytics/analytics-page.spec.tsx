@@ -13,6 +13,16 @@ import {
 
 // jsdom has no ResizeObserver; recharts' ResponsiveContainer only needs the methods to exist.
 const noop = () => undefined;
+// 06's recharts components are covered by 06; here they are plain stubs (no layout in jsdom).
+vi.mock('../profitability/charts', () => ({
+  BudgetVsForecastChart: ({ rows }: { rows: unknown[] }) => (
+    <div data-testid="budget-vs-forecast">{rows.length}</div>
+  ),
+  CashflowSCurve: ({ months }: { months: unknown[] }) => (
+    <div data-testid="cashflow">{months.length}</div>
+  ),
+}));
+
 class ResizeObserverStub {
   observe = noop;
   unobserve = noop;
@@ -58,6 +68,9 @@ describe('AnalyticsPage', () => {
     expect(within(kpis).getByText('Projects over budget')).toBeTruthy();
     expect(within(kpis).getByText('1 of 3')).toBeTruthy();
     expect(projectRows()).toHaveLength(3);
+    expect(screen.getByTestId('budget-vs-forecast').textContent).toBe('3');
+    // fixture cash flow spans 2024-11 … 2027-06 → 32 continuous months
+    expect(screen.getByTestId('cashflow').textContent).toBe('32');
   });
 
   it('should send the demo today to the API', async () => {

@@ -7,6 +7,8 @@ import { Card, SectionTitle } from '../../ui/card';
 import { cx, FOCUS, SOFT } from '../../ui/cx';
 import { Skeleton } from '../../ui/skeleton';
 import { EmptyState, ErrorState } from '../../ui/states';
+import { BudgetVsForecastChart, CashflowSCurve } from '../profitability/charts';
+import { useToday } from '../project/use-today';
 import { CategoryStackChart } from './category-stack-chart';
 import {
   filterPortfolio,
@@ -103,6 +105,7 @@ const calculateLink = (
 /** `/analytics`: the CFO's answers across the whole portfolio and a comparison of projects. */
 export function AnalyticsPage() {
   const portfolio = usePortfolio();
+  const today = useToday();
   const [params, setParams] = useSearchParams();
   const statusParam = params.get('status');
   const status: StatusFilter = PROJECT_STATUSES.includes(statusParam as never)
@@ -228,6 +231,17 @@ export function AnalyticsPage() {
               overBudget={view.projects.filter((p) => p.summary.overrun).length}
               projectCount={view.projects.length}
             />
+            <BudgetVsForecastChart
+              title="Budget vs forecast by project"
+              rows={view.projects.map((p) => ({
+                key: p.projectId,
+                label: p.name,
+                approved: p.summary.approved,
+                actual: p.summary.actual,
+                openCommitments: p.summary.openCommitments,
+                forecast: p.summary.forecast,
+              }))}
+            />
             <Card padded={false}>
               <div className="p-4 sm:p-5">
                 <SectionTitle subtitle="Click a project to open its Profitability tab">
@@ -236,7 +250,7 @@ export function AnalyticsPage() {
               </div>
               <ProjectsTable projects={view.projects} />
             </Card>
-            <div className="grid gap-4 xl:grid-cols-2">
+            <div className="grid gap-4 2xl:grid-cols-2">
               <CategoryStackChart projects={view.projects} />
               <Card>
                 <SectionTitle subtitle="Variance % of the approved budget; red = overrun">
@@ -246,6 +260,16 @@ export function AnalyticsPage() {
               </Card>
             </div>
             <div className="grid gap-4 xl:grid-cols-[2fr_1fr]">
+              <CashflowSCurve
+                title="Portfolio cash flow"
+                subtitle={
+                  period === 'ALL'
+                    ? 'All periods'
+                    : `Clipped to ${period}; cumulatives include earlier months`
+                }
+                months={view.cashflow}
+                todayMonth={today.slice(0, 7)}
+              />
               <DeliveryKpis projects={view.projects} />
             </div>
           </>

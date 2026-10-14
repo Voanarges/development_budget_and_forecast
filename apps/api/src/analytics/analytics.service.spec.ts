@@ -10,7 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AnalyticsService, DEFAULT_DEMO_TODAY } from './analytics.service';
 import { PortfolioQueryDto } from './dto/portfolio-query.dto';
 
-// monthlyCashflow belongs to block 06; until its body lands, return a fixed series to test the merge wiring.
+// monthlyCashflow (block 06) has its own spec; a fixed series keeps the merge wiring deterministic here.
 jest.mock('@default-project/budget-engine', () => {
   const actual = jest.requireActual('@default-project/budget-engine');
   return {
