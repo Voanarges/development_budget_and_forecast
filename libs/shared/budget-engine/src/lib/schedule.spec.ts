@@ -3,7 +3,7 @@ import type {
   MaterialScheduleResult,
   WorkScheduleResult,
 } from '@default-project/types';
-import { checkSchedule, daysBetween } from './schedule';
+import { addDays, checkSchedule, daysBetween } from './schedule';
 import { makeItem } from './testing';
 
 const TODAY = '2026-10-14';
@@ -148,5 +148,21 @@ describe('checkSchedule — works', () => {
     expect(
       checkSchedule([makeItem({ id: 'S', kind: 'SERVICE' })], TODAY),
     ).toEqual({});
+  });
+});
+
+describe('addDays (CR-05)', () => {
+  it('should cross month and year boundaries when adding days', () => {
+    expect(addDays('2026-12-30', 3)).toBe('2027-01-02');
+    expect(addDays('2026-02-27', 2)).toBe('2026-03-01');
+  });
+
+  it('should go back in time when n is negative and keep the date when n is 0', () => {
+    expect(addDays('2026-03-01', -1)).toBe('2026-02-28');
+    expect(addDays('2026-10-19', 0)).toBe('2026-10-19');
+  });
+
+  it('should be the inverse of daysBetween when shifting a date', () => {
+    expect(daysBetween('2026-10-19', addDays('2026-10-19', 9))).toBe(9);
   });
 });
