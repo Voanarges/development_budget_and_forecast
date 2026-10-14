@@ -16,13 +16,17 @@
       "Skill",
       "Agent",
       "Bash(gh *)",
-      "Bash(jq *)"
+      "Bash(jq *)",
+      "mcp__playwright-kairon",
+      "Bash(bash howItWorks/bin/*)",
+      "Bash(curl -s *)"
     ],
     "deny": [
       "Read(.env)",
       "Read(.env.local)",
       "Read(~/.ssh/**)",
-      "Bash(rm -rf *)"
+      "Bash(rm -rf *)",
+      "mcp__playwright-kairon__browser_run_code_unsafe"
     ],
     "ask": [
       "Bash(git push *)"
