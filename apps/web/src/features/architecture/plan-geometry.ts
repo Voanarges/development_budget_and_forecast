@@ -1,5 +1,9 @@
 import { roundHalfUp } from '@default-project/budget-engine';
-import type { ArchitecturePlan, LandParcel, Room } from '@default-project/types';
+import type {
+  ArchitecturePlan,
+  LandParcel,
+  Room,
+} from '@default-project/types';
 
 /**
  * Pure drawing geometry for the Architecture tab. Everything is integer centimetres (CONTRACTS §1);
@@ -15,7 +19,10 @@ export const FLOORS = [
 ] as const;
 
 type Geometry = Pick<Room, 'xCm' | 'yCm' | 'wCm' | 'hCm'>;
-type Footprint = Pick<ArchitecturePlan, 'footprintWidthCm' | 'footprintDepthCm'>;
+type Footprint = Pick<
+  ArchitecturePlan,
+  'footprintWidthCm' | 'footprintDepthCm'
+>;
 
 export interface Frame {
   widthCm: number;
@@ -41,15 +48,24 @@ export function formatAreaM2(cm2: number, decimals: 1 | 2 = 2): string {
   return `${(units / 10 ** decimals).toFixed(decimals)} m²`;
 }
 
-export const formatMetres = (cm: number): string => `${(cm / 100).toFixed(1)} m`;
+export const formatMetres = (cm: number): string =>
+  `${(cm / 100).toFixed(1)} m`;
 
 /** Touching edges are not an overlap (seed rooms share walls). */
 export function overlaps(a: Geometry, b: Geometry): boolean {
-  return a.xCm < b.xCm + b.wCm && b.xCm < a.xCm + a.wCm && a.yCm < b.yCm + b.hCm && b.yCm < a.yCm + a.hCm;
+  return (
+    a.xCm < b.xCm + b.wCm &&
+    b.xCm < a.xCm + a.wCm &&
+    a.yCm < b.yCm + b.hCm &&
+    b.yCm < a.yCm + a.hCm
+  );
 }
 
 export const isOutsideFrame = (r: Geometry, frame: Frame): boolean =>
-  r.xCm < 0 || r.yCm < 0 || r.xCm + r.wCm > frame.widthCm || r.yCm + r.hCm > frame.depthCm;
+  r.xCm < 0 ||
+  r.yCm < 0 ||
+  r.xCm + r.wCm > frame.widthCm ||
+  r.yCm + r.hCm > frame.depthCm;
 
 export interface RoomIssue {
   overlapsWith: string[];
@@ -57,9 +73,13 @@ export interface RoomIssue {
 }
 
 /** Warnings per room id (never blocks a save, AC-08.3). Only rooms on the same floor can overlap. */
-export function findRoomIssues(rooms: readonly Room[], frame: Frame): Record<string, RoomIssue> {
+export function findRoomIssues(
+  rooms: readonly Room[],
+  frame: Frame,
+): Record<string, RoomIssue> {
   const issues: Record<string, RoomIssue> = {};
-  const issue = (id: string) => (issues[id] ??= { overlapsWith: [], outside: false });
+  const issue = (id: string) =>
+    (issues[id] ??= { overlapsWith: [], outside: false });
   rooms.forEach((a, i) => {
     if (isOutsideFrame(a, frame)) issue(a.id).outside = true;
     for (const b of rooms.slice(i + 1)) {
@@ -72,7 +92,10 @@ export function findRoomIssues(rooms: readonly Room[], frame: Frame): Record<str
 }
 
 /** Human-readable warnings for one floor, e.g. "Kitchen overlaps Living + dining". */
-export function issueMessages(rooms: readonly Room[], issues: Record<string, RoomIssue>): string[] {
+export function issueMessages(
+  rooms: readonly Room[],
+  issues: Record<string, RoomIssue>,
+): string[] {
   const name = (id: string) => rooms.find((r) => r.id === id)?.name ?? id;
   const out: string[] = [];
   rooms.forEach((r, i) => {
@@ -88,7 +111,8 @@ export function issueMessages(rooms: readonly Room[], issues: Record<string, Roo
   return out;
 }
 
-type SitePlanInput = Footprint & Pick<ArchitecturePlan, 'siteOffsetXcm' | 'siteOffsetYcm'>;
+type SitePlanInput = Footprint &
+  Pick<ArchitecturePlan, 'siteOffsetXcm' | 'siteOffsetYcm'>;
 type Plot = Pick<LandParcel, 'plotWidthCm' | 'plotDepthCm'>;
 
 /** Distances from the house to the four plot boundaries; the street is the top edge (y = 0). */
@@ -108,8 +132,11 @@ export function siteSetbacks(plan: SitePlanInput, plot: Plot): Setbacks {
   };
 }
 
-export const isHouseOnPlot = (s: Setbacks): boolean => s.street >= 0 && s.rear >= 0 && s.left >= 0 && s.right >= 0;
+export const isHouseOnPlot = (s: Setbacks): boolean =>
+  s.street >= 0 && s.rear >= 0 && s.left >= 0 && s.right >= 0;
 
 /** Allowed footprint per GRZ in m² (areaM2 × grz). */
-export const allowedFootprintM2 = (land: Pick<LandParcel, 'areaM2' | 'grzBps'>): number =>
-  roundHalfUp(BigInt(land.areaM2) * BigInt(land.grzBps), 10_000n);
+export const allowedFootprintM2 = (
+  land: Pick<LandParcel, 'areaM2' | 'grzBps'>,
+): number =>
+  roundHalfUp(BigInt(land.areaM2) * BigInt(land.grzBps), BigInt(10_000));
