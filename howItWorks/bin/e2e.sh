@@ -24,6 +24,7 @@ TOP=$(git rev-parse --show-toplevel 2>/dev/null) || die "not in a git repo" 2
 [ "$(cd "$TOP" && pwd -P)" = "$(cd "$MAIN" && pwd -P)" ] || die "e2e runs only in the main tree ($MAIN), not in $TOP (PROTOCOL §7)" 2
 cd "$MAIN" || exit 2
 
+[ -s "${KAIRON_APP_DIR:-/tmp/kairon-app}/pids" ] && log "the app from app.sh holds the lock: run bash howItWorks/bin/app.sh down"
 log "waiting for the e2e lock"
 acquire e2e
 trap 'release e2e' EXIT
