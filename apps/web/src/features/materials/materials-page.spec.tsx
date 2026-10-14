@@ -3,8 +3,7 @@ import { AUTOSAVE_DELAY_MS } from '../../lib/autosave-queue';
 import { useUiStore } from '../../lib/ui-store';
 import { makeItem } from '@default-project/budget-engine';
 import type { CostItem } from '@default-project/types';
-import { fakeResponse } from '../../testing/render';
-import { kpi, lastPath, mockMaterialsApi, PID, renderMaterials, row, settle, useFakeClock } from './test-utils';
+import { fakeResponse, kpi, lastPath, mockMaterialsApi, PID, renderMaterials, row, settle, useFakeClock } from './test-utils';
 
 const MATERIALS = `/projects/${PID}/materials`;
 

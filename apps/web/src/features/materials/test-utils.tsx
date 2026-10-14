@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, vi } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
-import { notifyManager, QueryClientProvider } from '@tanstack/react-query';
+import { notifyManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { makeItem, makeLine, makeOrg, makeSnapshot } from '@default-project/budget-engine';
 import type { CostItem, Delivery, ProjectSnapshot } from '@default-project/types';
@@ -9,10 +9,17 @@ import { autosaveQueue } from '../../lib/autosave-queue';
 import { queryKeys } from '../../lib/query-keys';
 import { useToastStore } from '../../lib/toast-store';
 import { useUiStore } from '../../lib/ui-store';
-import { fakeResponse, testQueryClient } from '../../testing/render';
 import { normalise, type ProjectCache } from '../project/project-cache';
 
 export const PID = 'project-1';
+
+// Local copies of testing/render.tsx helpers: this file is type-checked with the app (not spec) tsconfig.
+export function fakeResponse(body: unknown, status = 200): Response {
+  return { ok: status < 400, status, text: async () => JSON.stringify(body ?? ''), json: async () => body } as Response;
+}
+
+const testQueryClient = () =>
+  new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity, gcTime: Infinity } } });
 
 /**
  * Seed-like fixture (today = 2026-10-14):
