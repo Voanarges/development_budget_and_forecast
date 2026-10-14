@@ -47,5 +47,13 @@ Code · Work item · Volume + unit · Rate · Planned amount · Committed · Act
 - AC-05.6 (Vitest) The `contingency` section shows the reserve (approved) and "Used by overruns" = Σ overrun of other lines (engine) without a table.
 - AC-05.7 (e2e, integrator) The scenario from step 4 (cross-tab, live).
 
+Added by the block session from the panel (DESIGN.md):
+- AC-05.8 (Vitest) The SubNav badge shows the number of BLOCKED + INVALID_DATES works per section (fixture: windows-install 1, heating-install 1); `contingency` has no badge.
+- AC-05.9 (Vitest) `/construction` without a section redirects to `lastSection.construction`, otherwise to the first section; visiting a section stores it.
+- AC-05.10 (Vitest) Clicking a material chip navigates to `/projects/:id/materials/<material's section>?highlight=<id>`.
+- AC-05.11 (Vitest) Linking a material sends one PATCH of the material with `requiredForWorkId` = the work id; unlinking sends `null`.
+- AC-05.12 (Vitest) "Shift work start" on a work with two late materials targets the latest delivery date.
+- AC-05.13 (Vitest) Editing one work row does not re-render the other rows (render counter).
+
 ## Verify
 `npx nx test web && npx nx lint web && npx nx typecheck web`.

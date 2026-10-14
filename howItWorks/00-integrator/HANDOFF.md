@@ -40,3 +40,10 @@
   - whole-euro amounts;
   - a hanging `blur()`.
   The integrator now owns materials/profitability/construction e2e specs (row 00, `state/00.spec-rewrite`).
+- 12:26: **finish.**
+  - Final `merge: 00-integrator` is `e20cf83`; `00.merged` is kept.
+  - AC-00.1: `run-many -t lint test typecheck build` exit 0 (5 projects).
+  - AC-00.2: full `e2e.sh` 20/20 passed, ledger OK=138 / UNCOVERED 0 / FAILED 0 (`docs/test-runs/2026-10-14-122531-e2e.md`); `ac-ledger --block 00 --e2e-report` exit 0.
+  - AC-00.3: SOLUTION.md has all 6 sections.
+  - AC-00.4: a `merge: <slug>` for all 14 rows, 55 merge commits, no squash/force.
+  - Docs: `docs/architecture/` (15 docs + index), README quick start, SOLUTION.md at the root.

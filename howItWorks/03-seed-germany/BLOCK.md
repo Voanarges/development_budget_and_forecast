@@ -42,6 +42,7 @@ An idempotent `npx prisma db seed` that creates the realistic project "Stadtvill
 - AC-03.4 (Jest) Every `boqComponentId` link has equal qty; `materialSection` exists in the catalogue.
 - AC-03.5 (manual / integrator) `npx prisma db seed` twice in a row → identical `SELECT COUNT(*)` for every table.
 - AC-03.6 Every code is unique within a project; every organisation email ends in `.example`.
+- AC-03.7 (unit) The demo cable `MAT-ELE-001` is PARTIAL with committed = actual = 760.00 € (1,000 m paid), so `itemForecastCents` gives 988.00 € for 1,300 m and falls when the qty is lowered to 900 m (SUMMARY §3 step 3); the project forecast stays 540,455.65 €.
 
 ## Verify
 In the worktree: `cd apps/api && npx prisma migrate deploy && npx prisma db seed && npx prisma db seed` (exit 0, counts unchanged), `npx nx test api`.

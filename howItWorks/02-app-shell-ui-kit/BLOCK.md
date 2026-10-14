@@ -35,6 +35,14 @@ CONTRACTS §7, row 02.
 - AC-02.10 `?highlight=<id>` → the row gets `data-highlighted` and `scrollIntoView` is called.
 - AC-02.9 The rewritten `app.spec.tsx` is green; health tests are untouched and green.
 
+### Added by the design panel (DESIGN.md, judge constraints 2–8)
+- AC-02.11 Autosave saves for one key run strictly one after another; different keys do not wait for each other.
+- AC-02.12 A successful save never overwrites a newer pending edit of the same row.
+- AC-02.13 A failed save restores the last server-confirmed row, drops the queued patches for that key and keeps other rows' references.
+- AC-02.14 A refetch while edits are unconfirmed keeps the edited values (overlay).
+- AC-02.15 `beforeunload` flushes the queue; a successful save invalidates `['projects']` and `['analytics']`, not `['project', id]`.
+- AC-02.16 Every route of CONTRACTS §7 renders (placeholders included); `/` redirects to `/projects`.
+
 ## Verify
 `npx nx test web && npx nx lint web && npx nx typecheck web && npx nx build web` (exit 0). Visual: `WEB_PORT=4202 API_PORT=3502 npx nx serve web` (+ `PORT=3502 npx nx serve api`), then `pkill -f "$PWD/node_modules"`.
 

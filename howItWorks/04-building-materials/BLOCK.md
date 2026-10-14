@@ -41,5 +41,12 @@ Actions: add a row (code generated as `MAT-<PREFIX>-NNN`, the next free number, 
 - AC-04.7 (Vitest) SubNav shows the overrun badge on `concrete` and `electrical` for the seed-like fixture.
 - AC-04.8 (e2e, integrator) The scenario from step 5.
 
+Added by the block 04 brainstorm (DESIGN.md, judge's constraints):
+- AC-04.9 (Vitest) "Add row" in `windows-doors` with `MAT-WIN-001` and `MAT-WIN-003` in the project creates `MAT-WIN-004` (max+1 over all project items, gaps are not reused).
+- AC-04.10 (Vitest) `/materials` without a section redirects to the remembered section if it is a valid MATERIALS section, otherwise to the first one; the query string (`?highlight`, `?org`) is kept.
+- AC-04.11 (Vitest) Delete opens an inline popover: cancel sends nothing, confirm sends exactly one DELETE; `window.confirm` is never called. A row with DELIVERED deliveries cannot be deleted (button disabled, tooltip "Has recorded deliveries"; owner's decision 2026-10-14).
+- AC-04.12 (Vitest) A row with a DELIVERED delivery shows Actual read-only with the tooltip "Managed by delivery tracking"; a row without one is editable.
+- AC-04.13 (Vitest) Editing the approved amount in the footer updates the variance immediately and sends exactly one PATCH to `budget-lines/:lineId` after 400 ms.
+
 ## Verify
 `npx nx test web && npx nx lint web && npx nx typecheck web`.

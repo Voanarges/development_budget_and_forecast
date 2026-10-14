@@ -36,3 +36,9 @@ Find projects, cost items (materials, works, services), organisations and budget
 - AC-13.4 (Vitest) ⌘K focuses the search; ↓ + Enter navigates to the result; Esc closes.
 - AC-13.5 (Vitest) An empty result → "No results for …"; an API error → ErrorState.
 - AC-13.6 (Vitest) The match highlight renders `<mark>` through React (no innerHTML).
+- AC-13.7 (Jest) Organisation `href`: with rows → `/projects/<first non-template project>/materials?org=<id>`; only template rows or none → `/search?q=<encoded name>`.
+- AC-13.8 (Jest) Line `href` = `/projects/:pid/<tab>[/<section>]` (no section for LAND/ARCHITECTURE); project `href` = `/projects/:id`; a LAND item → `/projects/:pid/land?highlight=<id>`.
+- AC-13.9 (Jest) With 4 types × 8 matches the total is 30 (type order project, item, organization, line); `q` longer than 64 characters → 400.
+- AC-13.10 (Vitest) Fewer than 2 characters → no request; "aro" → exactly one request, only after the 250 ms debounce.
+- AC-13.11 (Vitest) `/search?q=aro&type=item` shows only items; a filter chip updates `?type=` in the URL.
+- AC-13.12 (e2e) ⌘K → "arotherm" → the item result → `/projects/<id>/materials/heating?highlight=<itemId>` and the row is highlighted.

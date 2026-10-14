@@ -29,3 +29,11 @@ A sidebar item `/analytics`: the CFO's 5 answers across the **whole portfolio** 
 - AC-11.3 (Vitest) The heatmap gives a red tone to a cell with variance < 0 and green to ≥ 0.
 - AC-11.4 (Vitest) An empty portfolio → EmptyState and a CTA "Calculate project".
 - AC-11.5 (Vitest) The status filter COMPLETED leaves only Markranstädt (fixture).
+- AC-11.6 (Jest, engine) Portfolio profitability for 2 projects with different markups = sum of per-project fields; margin = Σ forecast profit / Σ contract price (not `computeProfitability(totals, one markup)`).
+- AC-11.7 (Jest, engine) `mergeCashflows` sums monthly amounts, fills gaps between disjoint ranges, recomputes cumulatives; exact cents; `[]` → `[]`.
+- AC-11.8 (Vitest/Jest) Period filter keeps projects whose dates overlap the year (edges included); KPIs whole-life; the cash flow is clipped and keeps earlier cumulatives.
+- AC-11.9 (Vitest) A header click sorts the projects table asc, then desc (`aria-sort`).
+- AC-11.10 (Vitest) A row click opens `/projects/:id/profitability`.
+- AC-11.11 (Jest, API) A malformed `?today` → 400; a valid `today` drives the overdue count; % on time follows block 10's rule.
+- AC-11.12 (Vitest) Loading skeleton; API error → ErrorState with a working Retry; `<h1>Analytics</h1>` in every state.
+- AC-11.13 (e2e, integrator) A duplicated demo project appears in the portfolio (API totals = Σ rows, its approved = Taucha's) and its row opens its Profitability tab; no absolute counts.

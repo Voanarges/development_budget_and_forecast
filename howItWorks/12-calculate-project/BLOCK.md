@@ -35,3 +35,8 @@ Route `/projects/new`: a step-by-step calculation of a new project from the temp
 - AC-12.4 (Vitest) Step 4 recalculates the estimate when the area changes on step 3; invalid steps block "Next" with messages.
 - AC-12.5 (Vitest) After success → navigate to `/projects/<newId>/land` and invalidate `['projects']`.
 - AC-12.6 (e2e, integrator) Create a project → it appears in Current projects → the Materials tab opens with rows.
+- AC-12.7 (Jest) Land parcel, utilities and land rows come from step 2, never from the template (lat/lng 0, no template B-Plan); item dates are shifted by (startDate − template start).
+- AC-12.8 (Jest) With the default amounts the new project has 0 overrun lines; with user amounts Σ approved per category = `approvedByCategory` exactly.
+- AC-12.9 (Jest) Template missing → 404 and nothing is written; duplicate utility types or amounts beyond Int32 → 400.
+
+> Scaling note (DESIGN.md, judge constraint 3): only continuous units (m3, m2, m, t, kg, h) are scaled by the area factor, as in 03's `derive.ts`. Counted rows (pcs/set/lump) stay as they are.

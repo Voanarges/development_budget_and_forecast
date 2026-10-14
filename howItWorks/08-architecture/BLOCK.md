@@ -37,3 +37,5 @@ Route `/projects/:id/architecture`: the house project for a family of 4 that fit
 - AC-08.4 (Vitest) Editing BOQ quantity → the planned amount of the linked MATERIAL row and the MATERIALS KPI change (cross-tab through the cache).
 - AC-08.5 (Vitest) The SVG renders 6 rooms for GF and 8 for UF with the right labels; the GF/UF switch works without losing edits.
 - AC-08.6 (Vitest) SitePlan: the house sits inside the plot; a house that goes outside it → warn.
+- AC-08.7 (Jest) A room or component id from another project (or missing) → 404, nothing is written.
+- AC-08.10 (Vitest) A failed BOQ qty PATCH → the linked MATERIAL rows' qty and the KPI roll back, and a toast is shown.

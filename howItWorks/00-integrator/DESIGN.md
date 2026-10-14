@@ -127,3 +127,30 @@ npx nx run-many -t lint test typecheck build; git log --merges --oneline
 
 ## Open questions
 - The owner: who commits the kit session's uncommitted `.claude/**` and `bin/e2e.sh`, and when? (Blocker for the first merge.)
+
+## As built (2026-10-14, after the run)
+- **The watcher** works as specified, with two changes made during the run (tests updated in the same commits):
+  - `--ack` records the current mtime of the CRs it reported, so the integrator's own status edit doesn't wake it again (`ac5042b`);
+  - `DIRTY` fires once per dirty episode, while blocked merges still arrive as `STATUS NN main-dirty` (`9868eaa`).
+  
+  `state/integrator.*` is shared: a second session acking with the same script swallows events. **Run one integrator per repo.**
+- **Row 00** grew during the run. On top of the frozen files it now owns:
+  - `apps/api/.env.example` (CR-11);
+  - `budget-engine/src/lib/schedule.ts` + spec (CR-05);
+  - the 04/05/06 e2e specs (post-merge e2e fixes, `state/00.spec-rewrite`);
+  - `features/land/plot-diagram.tsx` + spec (07 → 08's SitePlan).
+- **CRs:**
+  - CR-12 was docs only;
+  - CR-11 and CR-05 shipped as code in the first 00 merge (`1e0fe11`, CONTRACT_VERSION 2);
+  - 01's as-built differences were written into CONTRACTS.
+- **e2e fixes, all test-side (no assertion removed):**
+  - tabs are `role="tab"`;
+  - `textContent` instead of `innerText`;
+  - whole-euro amounts;
+  - a hanging `blur()`;
+  - the demo quantity edit moves the forecast only on a row whose status allows it. The owner's decisions: 04/06 specs use the PLANNED MAT-ELE-008; the cable is PARTIAL in the seed and the journey edits it.
+- **Interim 00 merges** removed `00.merged` each time (constraint 2). There were 6 `merge: 00-integrator` commits.
+- **Lessons:**
+  - Another session editing `.claude/**` in the main tree blocked merges three times. The kit should be committed before baseline, as the testing-kit spec already said.
+  - `e2e.sh` can leave a run record uncommitted in main.
+  - The orchestrator session also wrote as `00`. One integrator id per session would avoid that.

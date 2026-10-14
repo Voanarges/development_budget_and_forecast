@@ -42,6 +42,12 @@ Route `/projects/:id/profitability`: the project's final financial picture for t
 - AC-06.5 (Vitest) Every chart renders with empty data (EmptyState, no crash).
 - AC-06.6 (Vitest) Clicking a "Top overruns" row navigates to `/projects/:id/materials/concrete`.
 - AC-06.7 (e2e, integrator) The scenario from step 5.
+- AC-06.8 (Jest, engine) Sum invariant on a mixed snapshot: Σ months + `unscheduled` = project planned and forecast in exact cents; Σ months.actual = project actual.
+- AC-06.9 (Jest, engine) WORK with `endDate < startDate` → everything in the start month; WORK with one date → that one month.
+- AC-06.10 (Jest, engine) Year boundary (2026-11 → 2027-01 = 3 months) and 2028-02-29 → `2028-02`; no `Date`, so no timezone drift.
+- AC-06.11 (Jest, engine) Empty snapshot → `months: []` and `unscheduled` zeros.
+- AC-06.12 (Vitest) Waterfall data: starts at approved, reaches EAC after the category steps, ends at the contract price; a negative step has base = lower value and height = |Δ|.
+- AC-06.13 (Vitest) Contract price 0 → margin 0 % (no NaN); profit erosion ≤ 0 is not red.
 
 ## Verify
 `npx nx test budget-engine && npx nx test web && npx nx lint web budget-engine && npx nx typecheck web budget-engine`.
