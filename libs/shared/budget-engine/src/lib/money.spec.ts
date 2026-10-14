@@ -42,6 +42,12 @@ describe('itemPlannedCents', () => {
     expect(itemPlannedCents({ qtyMilli: 500, unitPriceCents: 5 })).toBe(3);
   });
 
+  it('should multiply 12.5 m³ × €192.50 to exactly €2,406.25 [AC-01.1]', () => {
+    expect(itemPlannedCents({ qtyMilli: 12_500, unitPriceCents: 19_250 })).toBe(
+      240_625,
+    );
+  });
+
   it('should stay exact at the DTO caps', () => {
     expect(
       itemPlannedCents({

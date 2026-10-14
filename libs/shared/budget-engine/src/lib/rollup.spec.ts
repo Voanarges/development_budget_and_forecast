@@ -9,6 +9,7 @@ import {
   itemOpenCommitment,
   summarizeProject,
 } from './rollup';
+import { itemPlannedCents } from './money';
 import { makeItem, makeLine } from './testing';
 
 // planned = qty 1.000 × price → price in cents
@@ -104,14 +105,33 @@ describe('summarizeProject', () => {
       'forecast',
     ] as const;
 
+    const rowValues = (r: (typeof items)[number]) => {
+      const open = Math.max(r.committedCents - r.actualCents, 0);
+      return {
+        approved: 0,
+        planned: itemPlannedCents(r),
+        committed: r.committedCents,
+        actual: r.actualCents,
+        openCommitments: open,
+        exposure: r.actualCents + open,
+        forecast: itemForecastCents(r),
+      };
+    };
     for (const line of lines) {
-      const rows = items.filter((i) => i.budgetLineId === line.id);
-      expect(s.byLine[line.id].forecast).toBe(
-        rows.reduce((a, r) => a + itemForecastCents(r), 0),
-      );
-      expect(s.byLine[line.id].committed).toBe(
-        rows.reduce((a, r) => a + r.committedCents, 0),
-      );
+      const rows = items
+        .filter((i) => i.budgetLineId === line.id)
+        .map(rowValues);
+      for (const f of fields) {
+        const expected =
+          f === 'approved'
+            ? line.approvedCents
+            : rows.reduce((a, r) => a + r[f], 0);
+        expect([line.id, f, s.byLine[line.id][f]]).toEqual([
+          line.id,
+          f,
+          expected,
+        ]);
+      }
     }
     for (const f of fields) {
       for (const c of COST_CATEGORIES) {
