@@ -15,3 +15,5 @@ File name: `CR-<block>-<slug>.md`, for example `CR-08-room-rotation.md`. The int
 
 Applied:
 - CR-00-contingency-line: the `contingency` section is added to CONSTRUCTION (CONTRACTS §4). Already in contract v1.
+- CR-12-wizard-template-route: `GET /projects/wizard/template` (block 12), scaling rule, block-private query keys. Docs only (CONTRACTS §5, §6).
+- CR-11-portfolio-extension: accepted, pending the first block-00 merge after `w0-frozen`.
